@@ -1,28 +1,91 @@
 # Contributing
 
-Thanks for taking an interest. Bug reports, patches and ideas are all welcome.
+Thanks for taking an interest. Themes, code, docs and bug reports are all
+welcome — and you do **not** need GRUB installed, or to reboot, to contribute.
 
-Read [AGENTS.md](AGENTS.md) first. GRUB fails silently in several
-interesting ways, and every constraint documented there exists because
-something broke.
+Read [AGENTS.md](AGENTS.md) first if you are touching code. It documents
+GRUB's silent-failure modes, and most of the odd-looking decisions in this
+repository exist because one of them bit us.
+
+## Adding a theme
+
+This is the easiest way in, and the most useful.
+
+1. Copy an existing theme as a starting point:
+
+   ```bash
+   cp -r themes/jarvis themes/your-theme
+   ```
+
+2. Edit `themes/your-theme/theme.toml` — id, name, description, your name,
+   licence. The `id` must match the directory name.
+
+3. Make your art. Keep the generators working: if you change the background,
+   edit the SVG under `tools/` and re-run its build script rather than editing
+   the PNG directly, so the change is reproducible.
+
+4. **Encode every PNG as colour-type 6, bit depth 8.** This is not optional —
+   GRUB decodes nothing else, and it fails silently:
+
+   ```bash
+   magick ... -define png:color-type=6 -define png:bit-depth=8 PNG32:out.png
+   ```
+
+5. Validate and preview:
+
+   ```bash
+   go run ./cmd/grub-themes lint your-theme
+   go run ./cmd/grub-themes preview your-theme    # writes a PNG
+   ```
+
+6. Include `preview.png` in your theme directory and reference it from
+   `theme.toml`. That is what people see when browsing.
+
+`lint` must pass. CI runs it on every pull request and attaches the rendered
+preview, so reviewers can see your theme without booting anything.
+
+## Testing without GRUB
+
+Three levels, in increasing cost:
+
+| Command | Needs | What it tells you |
+|---|---|---|
+| `grub-themes lint` | nothing | manifest, file references, PNG encoding, font names |
+| `grub-themes preview` | nothing | what the layout looks like |
+| `grub-themes qemu` | `qemu`, `grub-mkrescue` | real GRUB rendering, no reboot |
+
+`lint` and `preview` are pure Go and run anywhere. Use `qemu` if you have it —
+it boots a throwaway image, so it cannot affect your own bootloader.
+
+Only install a theme on hardware you can afford to reboot. `sudo ./install.sh
+--dry-run` shows every step without changing anything.
+
+## Building
+
+```bash
+git clone https://github.com/sarbojitrana/grub-themes.git
+cd grub-themes
+go build ./...
+go run ./cmd/grub-themes list
+```
+
+Go 1.22 or newer.
 
 ## Signed commits are required
 
 **Every commit must carry a verified signature.** Unsigned commits will not be
-merged, and `main` is protected to reject them.
-
-Set it up once:
+merged; `main` is protected to reject them.
 
 ```bash
 # GPG
 gpg --quick-generate-key "Your Name <you@example.com>" ed25519 sign 1y
-gpg --list-secret-keys --keyid-format=long          # note the key id
+gpg --list-secret-keys --keyid-format=long        # note the key id
 git config --global user.signingkey <KEY_ID>
 git config --global commit.gpgsign true
-gpg --armor --export <KEY_ID>                       # add this to GitHub
+gpg --armor --export <KEY_ID>                     # add this to GitHub
 ```
 
-Or SSH, which is simpler if you already push over SSH:
+Or SSH, simpler if you already push over SSH:
 
 ```bash
 git config --global gpg.format ssh
@@ -31,83 +94,52 @@ git config --global commit.gpgsign true
 ```
 
 Add the key to GitHub under *Settings → SSH and GPG keys* as a **signing** key,
-not just an authentication key. Check your work:
+not only an authentication key. Verify with `git log --format='%h %G? %s'` —
+`G` is good, `N` is unsigned.
 
-```bash
-git log --format='%h %G? %s'      # G = good signature, N = unsigned
-```
-
-`git rebase` and especially `git filter-branch` **drop signatures**. If you
-rewrite history, re-sign before pushing:
+`git rebase` and `git filter-branch` **drop signatures**. If you rewrite
+history, re-sign before pushing:
 
 ```bash
 git rebase --root --exec 'git commit --amend --no-edit -S'
 ```
-
-## Making changes
-
-Never hand-edit the files in `theme/` that have a generator. Edit the source
-and rebuild, so the change is reproducible:
-
-| To change | Edit | Then run |
-|---|---|---|
-| background art | `tools/background.svg` | `./tools/build-background.sh` |
-| highlight, progress bar, terminal box | `tools/build-assets.sh` | `./tools/build-assets.sh` |
-| fonts | — | `./tools/build-fonts.sh /path/Regular.ttf /path/Bold.ttf` |
-| layout, colours, geometry | `theme/theme.txt` | — |
-
-`build-assets.sh` verifies the PNG encoding and exits non-zero if GRUB would
-not be able to decode the result. **Run it before every commit that touches a
-pixmap.** If you swap fonts, copy the names `build-fonts.sh` prints into
-`theme.txt` — GRUB matches fonts by the name inside the file, not the path.
-
-## Testing
-
-There is no preview mode, and a bad theme is only visible after a reboot.
-Compose your change first and look at it:
-
-```bash
-# render the menu as GRUB would lay it out, using the geometry from theme.txt
-magick theme/select_c.png -resize 766x44! /tmp/c.png
-magick theme/select_w.png /tmp/c.png theme/select_e.png +append /tmp/pill.png
-magick theme/background.png /tmp/pill.png -geometry +115+324 -composite /tmp/preview.png
-```
-
-Then, on a machine you can afford to reboot:
-
-```bash
-sudo ./install.sh --dry-run     # shows every step, changes nothing
-sudo ./install.sh
-```
-
-Please say in the PR which distro, GRUB version and resolution you tested on.
 
 ## Commit messages
 
 One short subject line, imperative mood, no body. Aim for ~50 characters.
 
 ```
-Brighten theme; move menu beside the reactor
+Add Nord theme
+Fix pixmap encoding in Cyberpunk theme
 ```
+
+Explanation belongs in code comments or `AGENTS.md`, next to what it explains.
 
 ## Pull requests
 
-- One change per PR.
-- Include a screenshot or a composed preview for anything visual.
-- If you touched `install.sh`, say how you verified the rollback path — that
-  code exists to stop someone losing their boot config.
+- One change per PR. One theme per PR.
+- Say what you tested and how (`lint`, `preview`, `qemu`, or real hardware).
+- For code touching `internal/install`, say how you verified the rollback path.
+  That code exists to stop people losing their boot configuration, and it is
+  the part of this project where a bug is genuinely dangerous.
 
 ## Reporting bugs
 
-Include your distro, GRUB version, resolution, and the contents of
-`/etc/default/grub`. If something renders as nothing at all, check the encoding
-first — it is almost always this:
+Include your distro, GRUB version, screen resolution, and `/etc/default/grub`.
+If a theme renders as nothing at all, run `grub-themes lint` first — it is
+usually the PNG encoding.
 
-```bash
-./tools/build-assets.sh
-```
+## Hacktoberfest
+
+This repository takes part in Hacktoberfest. Please make your contribution a
+real one: a theme you designed, a bug you fixed, documentation that was
+genuinely missing. Spam PRs will be marked as such.
+
+Good first issues are labelled `good first issue`. Adding a theme is a great
+first contribution and needs no Go.
 
 ## License
 
 By contributing you agree that your work is licensed under the MIT License, as
-in [LICENSE](LICENSE).
+in [LICENSE](LICENSE). Themes you submit must be yours to license, or carry a
+compatible licence noted in the theme's `theme.toml`.

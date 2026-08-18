@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Regenerate the pixmap slices in theme/ (selection highlight, progress bar,
+# Regenerate this theme's pixmap slices (selection highlight, progress bar,
 # terminal box).
 #
 # The one thing that matters here: every file must be PNG colour-type 6
@@ -25,7 +25,7 @@ command -v magick >/dev/null || { echo "ImageMagick (magick) required"; exit 1; 
 # every write goes through this
 PNGOPT=(-define png:color-type=6 -define png:bit-depth=8 -define png:interlace=0)
 
-OUT=theme
+OUT=.
 H=44                      # must match item_height in theme.txt
 CAP=20                    # width of the rounded end caps
 

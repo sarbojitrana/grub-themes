@@ -1,89 +1,139 @@
 # Notes for agents and contributors
 
-Context for anyone — human or AI — working on this theme. GRUB is an unusual
-target: it has a minimal image decoder, a font format of its own, and almost no
-error reporting. Nearly everything below is a silent-failure mode.
+Context for anyone — human or AI — working on this repository. Read this before
+changing anything; GRUB fails silently in several interesting ways and most of
+the odd-looking decisions here are load-bearing.
 
 ## What this is
 
-A GRUB2 gfxmenu theme. `theme/` is what gets installed; `tools/` regenerates
-the assets from source; `install.sh` puts it in place and verifies your boot
-config survived.
+A collection of GRUB2 themes **plus an application to browse and apply them**.
+The application is the point: picking a GRUB theme normally means copying files
+into `/usr/share/grub/themes`, hand-editing `/etc/default/grub` and hoping
+`grub-mkconfig` does not eat your boot entries. This wraps that safely.
+
+Scope, decided 2026-08-19:
+
+- **Go**, single static binary. Packaging across apt/dnf/pacman is the main
+  cross-distro cost, and one binary makes it nearly free.
+- **TUI + CLI.** No GTK/Qt dependency, works over SSH, no display server.
+- **Themes are data, not code.** A theme is a directory under `themes/` with a
+  `theme.toml` manifest. Contributors adding a theme never touch Go.
+
+## Layout
 
 ```
-theme/
-  theme.txt            gfxmenu definition
-  background.png       1920x1080 backdrop
-  *.pf2                bitmap fonts, pre-built
-  select_*.png         selection pill, sliced west / centre / east
-  progress_*.png       countdown bar
-  terminal_box_*.png   frame GRUB draws when an entry prints output
-tools/
-  background.svg       source art
-  build-background.sh  re-render background.png
-  build-assets.sh      rebuild every pixmap, and verify GRUB can decode them
-  build-fonts.sh       rebuild the .pf2 fonts from a TTF
+cmd/grub-themes/      CLI entry point
+internal/
+  theme/              manifest parsing + discovery      [done]
+  lint/               validation, no GRUB needed        [done]
+  preview/            render theme.txt to a PNG         [TODO]
+  install/            apply/remove, with rollback       [TODO]
+  tui/                bubbletea browser                 [TODO]
+themes/<id>/          one directory per theme
+  theme.toml          manifest
+  theme.txt           GRUB gfxmenu definition
+  *.png *.pf2         assets
+  preview.png         what the browser shows
+  tools/              that theme's asset generators
+packaging/            nfpm config, PKGBUILD             [TODO]
 ```
 
-## Things that will bite you
+## State
 
-**GRUB only decodes PNG colour-type 6 (truecolour+alpha) at bit-depth 8, and it
-fails silently.** This is the single biggest trap. Ask ImageMagick for a flat
-coloured rectangle and it will helpfully optimise it to a 1-bit palette PNG,
-which GRUB drops entirely. The symptoms do not look like an image problem:
+| Piece | Status |
+|---|---|
+| `theme` package, `theme.toml` schema | done |
+| `lint` — catches all three known silent failures | done |
+| `list`, `lint` subcommands | done |
+| `preview` renderer | not started |
+| `install` / `apply` with rollback | logic exists in the old `install.sh`, needs porting |
+| TUI | not started |
+| QEMU harness | not started |
+| Packaging | not started |
 
-- the selected entry appears *blanked out* rather than highlighted, because
-  only `selected_item_color` took effect and it is dark;
-- a solid black slab covers the screen while the kernel loads, because the
-  terminal box slices failed and GRUB fell back to its own opaque console.
+The old shell installer is the reference implementation for `internal/install`.
+Its safety contract is described below and **must** be preserved.
 
-`PNG32:` on its own is **not** enough. You need:
+## GRUB's silent failure modes
 
-```bash
--define png:color-type=6 -define png:bit-depth=8
-```
+These are why `lint` exists. Each one produces a broken boot menu with no error
+anywhere.
 
-And do not verify with `magick identify -format '%[type]'` — it reports
-`PaletteAlpha` for a perfectly valid colour-type 6 file, because it describes
-content rather than encoding. Read the IHDR byte. `tools/build-assets.sh` does
-this and exits non-zero on a bad header; run it after touching any pixmap.
+**PNG colour-type.** GRUB decodes **only colour-type 6 (truecolour+alpha) at
+bit depth 8**. Ask ImageMagick for a flat-coloured rectangle and it optimises to
+a 1-bit palette PNG, which GRUB drops entirely. Symptoms do not look like an
+image problem: the selected entry appears *blanked out* rather than highlighted
+(only `selected_item_color` took effect), and a themed terminal box becomes an
+opaque black slab while the kernel loads. `PNG32:` alone is not enough — you
+need `-define png:color-type=6 -define png:bit-depth=8`. Do **not** verify with
+`magick identify -format '%[type]'`; it reports `PaletteAlpha` for a valid
+colour-type 6 file because it describes content, not encoding. Read the IHDR
+byte, as `internal/lint` does.
 
-**Fonts are matched by the name baked into the `.pf2`, not by filename.**
-`grub-mkfont` writes a name inside the file and `theme.txt` must reference that
-string exactly — hence `"JetBrainsMono NF Regular 20"` rather than a path.
-`tools/build-fonts.sh` prints the baked names after rebuilding.
+**Font names.** GRUB matches fonts by a name baked inside the `.pf2` by
+`grub-mkfont`, never by filename. `theme.txt` must reference that exact string
+(`"JetBrainsMono NF Regular 20"`). Rename or resize a font and the text silently
+disappears.
 
-**`selected_item_color` is dark, and that only works because the pill renders.**
-Dark text plus a dropped pixmap is exactly the failure above. If you change the
-highlight to something translucent, make the text light to match.
+**Pixmap slice sets.** `select_*.png` means GRUB looks for `_c`, `_w`, `_e`
+(and corner variants for boxes). A missing slice is not reported.
 
-**The terminal box slices are fully transparent on purpose.** GRUB draws that
-box whenever an entry prints something — pressing Enter does, letting the
-countdown expire does not. Any visible fill reads as a black slab for as long
-as the kernel takes to load. Keep the `terminal-box` property in `theme.txt`
-though: removing it makes GRUB fall back to its own solid console, which is the
-thing being avoided.
+**`GRUB_TERMINAL_OUTPUT=console`** in `/etc/default/grub` disables graphics
+entirely, so no theme renders at all. This is the single most common reason a
+GRUB theme "does nothing". The installer comments it out.
 
-**You cannot test this without rebooting.** There is no preview mode. Compose
-changes with ImageMagick first — render the background, tile the pill slices to
-the menu width, draw the item text at the geometry from `theme.txt` — and look
-at that before committing anyone to a reboot.
+**The terminal box appears on Enter, not on timeout.** GRUB draws it whenever an
+entry prints output. Pressing Enter does; letting the countdown expire does not.
+Any visible fill therefore reads as a black slab for as long as the kernel takes
+to load. The JARVIS theme ships fully transparent slices for this reason, but
+keeps the `terminal-box` property — removing it makes GRUB fall back to its own
+solid console.
 
-**Install location matters.** `/usr/share/grub/themes` is the default because it
-lives on the root filesystem. `/boot/grub/themes` is available behind
-`--boot-themes` for setups where GRUB cannot read `/usr`, but on UEFI `/boot`
-is often a small FAT ESP and this theme is a couple of megabytes.
+## Testing without GRUB — the three tiers
+
+Contributors will not all have GRUB, and nobody should install a bootloader or
+reboot to submit a theme. Hence:
+
+1. **`grub-themes lint`** — validates manifest, file references, PNG encoding
+   and font names. Instant, pure Go, no external tools. Catches every failure
+   above. **This runs in CI on every PR.**
+2. **`grub-themes preview`** — renders `theme.txt` to a PNG approximating what
+   GRUB would draw: background, then the selection pill tiled from its slices
+   at the geometry declared in `theme.txt`, then item text in the declared
+   fonts and colours. Not pixel-exact — it is a layout check, not an emulator.
+   **CI should attach this to the PR** so reviewers see the theme without
+   booting anything.
+3. **`grub-themes qemu`** — builds a throwaway image with `grub-mkrescue`, boots
+   it in QEMU and screenshots the menu. Real GRUB, real renderer, no reboot and
+   no risk to the host. Opt-in, since it needs `qemu` and `grub-mkrescue`.
+
+Tier 2 is the one that makes this project pleasant to contribute to. Build it
+early.
 
 ## The installer's safety contract
 
-`install.sh` regenerates `grub.cfg`, which is the risky part. Before doing so it
-records whether the existing config used UKI entries (`uki` / `15_uki`),
-whether it sourced `custom.cfg`, and how many `menuentry` lines there were.
-Afterwards it checks all three survived and **restores the backup and exits
-non-zero** if any did not. Backups go to `/root/jarvis-grub-backup-<timestamp>/`.
+Non-negotiable. `install.sh` (to be ported to `internal/install`) does this and
+any replacement must too:
 
-Do not weaken those checks. Someone else's recovery entries should not vanish
-because they tried a theme.
+- Probe for the layout rather than assuming: `grub` vs `grub2` directories,
+  `grub-mkconfig` vs `grub2-mkconfig`.
+- Back up `grub.cfg` and `/etc/default/grub` before touching anything.
+- Before regenerating, **record** whether the existing config used UKI entries
+  (`uki` / `15_uki`), whether it sourced `custom.cfg`, and how many
+  `menuentry` lines there were.
+- After regenerating, verify all three survived. If any did not, **restore the
+  backup and exit non-zero**.
 
-It also comments out `GRUB_TERMINAL_OUTPUT=console`, which is the most common
-reason a GRUB theme appears to do nothing at all.
+Someone else's recovery entries must not vanish because they tried a theme.
+This matters more than any feature.
+
+## Conventions
+
+- Commit messages: one short subject line, imperative, no body.
+- **Signed commits are required**; `main` enforces `required_signatures`. Note
+  that `git rebase` and `git filter-branch` silently drop signatures — re-sign
+  with `git rebase --root --exec 'git commit --amend --no-edit -S'`.
+- Assets have generators under `themes/<id>/tools/`. Never hand-edit a
+  generated file; edit the source and rebuild so the change is reproducible.
+- `internal/` is genuinely internal — no stability promise. Design the CLI as
+  the public interface.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Regenerate the .pf2 fonts in theme/ from a TTF.
+# Regenerate the .pf2 fonts for this theme from a TTF.
 #
 #   ./tools/build-fonts.sh [/path/to/Font.ttf] [/path/to/Font-Bold.ttf]
 #
@@ -17,12 +17,12 @@ command -v grub-mkfont >/dev/null || { echo "grub-mkfont not found (install grub
 [[ -f "$BOLD" ]] || { echo "no such font: $BOLD"; exit 1; }
 
 for s in 12 14 20; do
-  grub-mkfont -s "$s" -o "theme/jetbrains-$s.pf2" "$REG"
+  grub-mkfont -s "$s" -o "jetbrains-$s.pf2" "$REG"
 done
-grub-mkfont -s 18 -o theme/jetbrains-bold-18.pf2 "$BOLD"
+grub-mkfont -s 18 -o jetbrains-bold-18.pf2 "$BOLD"
 
 echo
 echo "Names baked into the .pf2 files — theme.txt must match these exactly:"
-for f in theme/*.pf2; do
+for f in *.pf2; do
   printf '  %-28s %s\n' "$(basename "$f")" "$(strings "$f" | grep -m1 -E '^[A-Za-z].* [0-9]+$')"
 done

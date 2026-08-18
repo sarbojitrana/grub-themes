@@ -1,0 +1,32 @@
+# Theme manifest. Every theme in themes/ needs one of these.
+# `grub-themes lint` validates it; the TUI reads it to build the browser.
+
+[theme]
+id          = "jarvis"
+name        = "J.A.R.V.I.S."
+description = "Arc-reactor HUD in cyan on blue-black. Menu left, reactor right."
+version     = "1.1.0"
+license     = "MIT"
+tags        = ["dark", "cyan", "minimal", "scifi", "hud"]
+
+[author]
+name   = "Sarbojit Rana"
+github = "sarbojitrana"
+
+[files]
+# Path to the GRUB theme definition, relative to this manifest.
+entry   = "theme.txt"
+preview = "preview.png"
+
+[display]
+# The resolution the art was drawn for. GRUB scales the background, and the
+# layout in theme.txt is in percentages, so other 16:9 modes work unchanged.
+designed_for = "1920x1080"
+aspect       = "16:9"
+
+[build]
+# Regenerating the assets. `grub-themes lint` does not run these, but a
+# contributor changing art is expected to, so the result is reproducible.
+background = "tools/build-background.sh"
+assets     = "tools/build-assets.sh"
+fonts      = "tools/build-fonts.sh"
