@@ -147,6 +147,7 @@ theme/                 what gets installed
 tools/
   background.svg       source art for background.png
   build-background.sh  re-render the backdrop
+  build-assets.sh      rebuild the pixmaps (and verify GRUB can decode them)
   build-fonts.sh       rebuild the .pf2 fonts from a TTF
 install.sh             installer / uninstaller
 ```
@@ -163,11 +164,41 @@ way. Confirm `grub.cfg` contains `set theme=`.
 `theme.txt` doesn't match the name inside the `.pf2`. Run
 `./tools/build-fonts.sh` and copy the names it prints.
 
+**The selected entry looks blanked out instead of highlighted, or the terminal
+is a solid black slab.** The pixmaps are in a PNG format GRUB cannot decode.
+GRUB's decoder handles **colour-type 6 (truecolour+alpha) at bit-depth 8 and
+nothing else**, and it fails silently — the image simply never appears, so all
+you see is the selected item's text colour change.
+
+This is easy to hit, because ImageMagick optimises a flat-coloured rectangle
+down to a 1-bit palette PNG unless you stop it. `PNG32:` on its own is not
+enough; you need the explicit define:
+
+```bash
+magick -size 32x44 xc:'rgba(0,217,255,0.42)' \
+  -define png:color-type=6 -define png:bit-depth=8 PNG32:out.png
+```
+
+Do not check this with `magick identify -format '%[type]'` — it reports
+`PaletteAlpha` for a perfectly valid colour-type 6 file because it describes
+the content, not the encoding. Read the IHDR byte instead:
+
+```bash
+./tools/build-assets.sh     # regenerates every pixmap and verifies the header
+```
+
 **Menu entries vanished after install.** They shouldn't — the installer verifies
 the count and rolls back if it drops. If you hit this anyway, your previous
 config is in `/root/jarvis-grub-backup-<timestamp>/`.
 
 ---
+
+## Contributing
+
+Patches welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) — note that **signed
+commits are required**, and that assets have generators in `tools/` rather than
+being hand-edited. [AGENTS.md](AGENTS.md) documents GRUB's silent-failure modes,
+above all the PNG encoding requirement; read it before touching a pixmap.
 
 ## License
 
