@@ -1,0 +1,80 @@
+# ─────────────────────────────────────────────────────────────
+#  J.A.R.V.I.S. — GRUB2 gfxmenu theme
+#  Font names below MUST match the names baked into the .pf2
+#  files by grub-mkfont ("JetBrainsMono NF Regular <size>").
+# ─────────────────────────────────────────────────────────────
+
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#0d151d"
+
+terminal-font: "JetBrainsMono NF Regular 14"
+terminal-box: "terminal_box_*.png"
+terminal-left: "6%"
+terminal-top: "12%"
+terminal-width: "88%"
+terminal-height: "76%"
+terminal-border: "0"
+
+# ---------------------------------------------------------- boot menu
++ boot_menu {
+  left   = 28%
+  top    = 30%
+  width  = 44%
+  height = 42%
+
+  item_font           = "JetBrainsMono NF Regular 20"
+  item_color          = "#a8c4d0"
+  selected_item_font  = "JetBrainsMono NF Bold 18"
+  selected_item_color = "#05202a"
+
+  icon_width      = 0
+  icon_height     = 0
+  item_icon_space = 0
+
+  item_height  = 44
+  item_padding = 10
+  item_spacing = 12
+
+  selected_item_pixmap_style = "select_*.png"
+  scrollbar = false
+}
+
+# ------------------------------------------------------- countdown bar
++ progress_bar {
+  id     = "__timeout__"
+  left   = 34%
+  width  = 32%
+  top    = 76%
+  height = 6
+
+  show_text    = false
+  fg_color     = "#00d9ff"
+  bg_color     = "#12202a"
+  border_color = "#12202a"
+  bar_style       = "progress_bar_*.png"
+  highlight_style = "progress_highlight_*.png"
+}
+
+# -------------------------------------------------------- countdown text
++ label {
+  id    = "__timeout__"
+  text  = "booting default in %d s"
+  left  = 0
+  top   = 79%
+  width = 100%
+  align = "center"
+  font  = "JetBrainsMono NF Regular 14"
+  color = "#86a5b3"
+}
+
+# ------------------------------------------------------------- key hints
++ label {
+  top   = 100%-58
+  left  = 0
+  width = 100%
+  align = "center"
+  text  = "↑ ↓  select      ENTER  boot      E  edit      C  console"
+  font  = "JetBrainsMono NF Regular 12"
+  color = "#6b8b99"
+}
