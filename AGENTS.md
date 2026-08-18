@@ -110,6 +110,73 @@ reboot to submit a theme. Hence:
 Tier 2 is the one that makes this project pleasant to contribute to. Build it
 early.
 
+## Planned: making themes independent of each other
+
+**Goal: adding a theme must never require reading or touching another theme.**
+
+Today it does. `CONTRIBUTING.md` says "copy `themes/jarvis`", which drags along
+jarvis's `tools/` — scripts written for jarvis's SVG background and its
+particular pill. Every new theme inherits decisions it did not make, and when
+jarvis changes, the copies quietly drift.
+
+Three moves fix that, in order of value. None of them is built yet.
+
+### 1. Hoist asset generation into the binary
+
+The colour-type 6 rule is the thing a contributor must never get wrong, and
+right now it is enforced by a shell script *inside one theme*. That is exactly
+backwards. Move it into `grub-themes build <id>`: the theme declares what it
+wants, the app emits correctly-encoded pixmaps. A theme author then writes no
+ImageMagick at all, and the encoding trap stops being their problem.
+
+`theme.toml` grows a declarative section, roughly:
+
+```toml
+[assets.selection]
+style  = "pill"        # pill | bar | underline | none
+fill   = "#00d9ff"
+text   = "#05202a"     # must contrast with fill; lint can check this
+radius = 10
+height = 44            # keep >= boot_menu item_height
+
+[assets.terminal_box]
+fill = "transparent"   # transparent avoids the black slab on Enter
+
+[assets.progress]
+track = "#12202a"
+fill  = "#00d9ff"
+```
+
+The background image stays something the author supplies — that is the actual
+creative work, and it should not be templated.
+
+### 2. `grub-themes new <id>`
+
+Scaffolds a complete, valid, **lint-passing** theme from a template compiled
+into the binary. Not a copy of an existing theme. The author gets
+`theme.toml`, `theme.txt` and placeholder art, and can build and preview
+immediately. This is what removes "go read how jarvis did it" from the
+contributor path.
+
+### 3. Themes become data-only
+
+Once 1 and 2 exist, a theme directory needs no shell scripts. `tools/` stays
+**optional**, for genuinely bespoke art — jarvis's SVG background is a fair
+example and should keep its generator. The standard path requires none.
+
+Target flow, end state:
+
+```bash
+grub-themes new nord          # scaffold, no other theme involved
+$EDITOR themes/nord/theme.toml
+grub-themes build nord        # generate pixmaps, correctly encoded
+grub-themes lint nord
+grub-themes preview nord
+```
+
+Sequence note: **1 before 2.** Scaffolding a theme is only useful once the app
+can build its assets, otherwise `new` just produces another thing to hand-edit.
+
 ## The installer's safety contract
 
 Non-negotiable. `install.sh` (to be ported to `internal/install`) does this and

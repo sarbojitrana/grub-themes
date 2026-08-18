@@ -11,6 +11,13 @@ repository exist because one of them bit us.
 
 This is the easiest way in, and the most useful.
 
+> **Interim flow.** Copying an existing theme is what works today, but it means
+> inheriting that theme's build scripts and design decisions. `grub-themes new`
+> will scaffold a fresh theme from a built-in template so you never have to
+> read another theme — see *Planned: making themes independent of each other*
+> in [AGENTS.md](AGENTS.md). Until then, feel free to delete anything in
+> `tools/` you are not using.
+
 1. Copy an existing theme as a starting point:
 
    ```bash
