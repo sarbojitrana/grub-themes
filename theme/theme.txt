@@ -6,7 +6,7 @@
 
 title-text: ""
 desktop-image: "background.png"
-desktop-color: "#0d151d"
+desktop-color: "#16212c"
 
 terminal-font: "JetBrainsMono NF Regular 14"
 terminal-box: "terminal_box_*.png"
@@ -18,13 +18,13 @@ terminal-border: "0"
 
 # ---------------------------------------------------------- boot menu
 + boot_menu {
-  left   = 28%
+  left   = 6%
   top    = 30%
-  width  = 44%
+  width  = 42%
   height = 42%
 
   item_font           = "JetBrainsMono NF Regular 20"
-  item_color          = "#a8c4d0"
+  item_color          = "#d3e7ef"
   selected_item_font  = "JetBrainsMono NF Bold 18"
   selected_item_color = "#05202a"
 
@@ -43,9 +43,9 @@ terminal-border: "0"
 # ------------------------------------------------------- countdown bar
 + progress_bar {
   id     = "__timeout__"
-  left   = 34%
-  width  = 32%
-  top    = 76%
+  left   = 6%
+  width  = 42%
+  top    = 78%
   height = 6
 
   show_text    = false
@@ -60,9 +60,9 @@ terminal-border: "0"
 + label {
   id    = "__timeout__"
   text  = "booting default in %d s"
-  left  = 0
-  top   = 79%
-  width = 100%
+  left  = 6%
+  top   = 81%
+  width = 42%
   align = "center"
   font  = "JetBrainsMono NF Regular 14"
   color = "#86a5b3"
@@ -76,5 +76,5 @@ terminal-border: "0"
   align = "center"
   text  = "↑ ↓  select      ENTER  boot      E  edit      C  console"
   font  = "JetBrainsMono NF Regular 12"
-  color = "#6b8b99"
+  color = "#89aab8"
 }

@@ -1,58 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#0d151d"/>
-      <stop offset="55%"  stop-color="#111c26"/>
-      <stop offset="100%" stop-color="#0a1119"/>
+      <stop offset="0%"   stop-color="#16212c"/>
+      <stop offset="45%"  stop-color="#1b2836"/>
+      <stop offset="100%" stop-color="#101922"/>
     </linearGradient>
+    <radialGradient id="vig" cx="60%" cy="48%" r="78%">
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.45"/>
+    </radialGradient>
     <radialGradient id="core" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#bff4ff" stop-opacity="0.50"/>
-      <stop offset="32%"  stop-color="#00d9ff" stop-opacity="0.30"/>
-      <stop offset="70%"  stop-color="#0891a8" stop-opacity="0.13"/>
+      <stop offset="0%"   stop-color="#eafdff" stop-opacity="0.98"/>
+      <stop offset="22%"  stop-color="#9aeeff" stop-opacity="0.85"/>
+      <stop offset="52%"  stop-color="#00d9ff" stop-opacity="0.55"/>
       <stop offset="100%" stop-color="#00d9ff" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#00d9ff" stop-opacity="0.14"/>
-      <stop offset="60%"  stop-color="#00d9ff" stop-opacity="0.035"/>
+      <stop offset="0%"   stop-color="#2ee6ff" stop-opacity="0.34"/>
+      <stop offset="45%"  stop-color="#00b4dd" stop-opacity="0.14"/>
       <stop offset="100%" stop-color="#00d9ff" stop-opacity="0"/>
     </radialGradient>
-    <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="9"/></filter>
   </defs>
 
   <rect width="1920" height="1080" fill="url(#bg)"/>
 
-  <!-- reactor, centred behind the menu -->
-  <g transform="translate(960,560)">
-    <circle r="470" fill="url(#halo)"/>
-    <circle r="300" fill="none" stroke="#173341" stroke-width="30" opacity="0.85"/>
-    <circle r="300" fill="none" stroke="#00d9ff" stroke-width="1.4" opacity="0.30"/>
-    <circle r="262" fill="none" stroke="#00d9ff" stroke-width="1"   opacity="0.16"/>
-    <g stroke="#00d9ff" stroke-width="10" opacity="0.36" filter="url(#soft)" fill="none">
-      <path d="M0 -282 a282 282 0 0 1 141 38"/>
-      <path d="M199 -199 a282 282 0 0 1 83 141"/>
-      <path d="M282 0 a282 282 0 0 1 -38 141"/>
-      <path d="M199 199 a282 282 0 0 1 -141 83"/>
-      <path d="M0 282 a282 282 0 0 1 -141 -38"/>
-      <path d="M-199 199 a282 282 0 0 1 -83 -141"/>
-      <path d="M-282 0 a282 282 0 0 1 38 -141"/>
-      <path d="M-199 -199 a282 282 0 0 1 141 -83"/>
+  <g transform="translate(1395,556)">
+    <circle r="450" fill="url(#halo)"/>
+
+    <!-- outer housing -->
+    <circle r="272" fill="none" stroke="#24404e" stroke-width="29" opacity="0.95"/>
+    <circle r="272" fill="none" stroke="#4fd8f5" stroke-width="2.4" opacity="0.85"/>
+    <circle r="238" fill="none" stroke="#3fc3e0" stroke-width="1.6" opacity="0.55"/>
+
+    <!-- coil segments, bright -->
+    <g stroke="#5fe4ff" stroke-width="15" opacity="0.95" filter="url(#soft)" fill="none">
+      <path d="M0 -257 a257 257 0 0 1 149 40"/>
+      <path d="M211 -211 a257 257 0 0 1 87 149"/>
+      <path d="M257 0 a257 257 0 0 1 -40 149"/>
+      <path d="M211 211 a257 257 0 0 1 -149 87"/>
+      <path d="M0 257 a257 257 0 0 1 -149 -40"/>
+      <path d="M-211 211 a257 257 0 0 1 -87 -149"/>
+      <path d="M-257 0 a257 257 0 0 1 40 -149"/>
+      <path d="M-211 -211 a257 257 0 0 1 149 -87"/>
     </g>
-    <circle r="186" fill="none" stroke="#143039" stroke-width="22" opacity="0.9"/>
-    <circle r="186" fill="none" stroke="#00d9ff" stroke-width="1.3" opacity="0.34"/>
-    <circle r="158" fill="url(#core)"/>
+
+    <!-- inner ring + core -->
+    <circle r="169" fill="none" stroke="#1d3846" stroke-width="22" opacity="0.95"/>
+    <circle r="169" fill="none" stroke="#5fe4ff" stroke-width="2" opacity="0.8"/>
+    <circle r="145" fill="url(#core)"/>
+    <circle r="53"  fill="#f4feff" opacity="0.95" filter="url(#soft)"/>
+
+    <!-- tick marks -->
+    <g stroke="#7fe9ff" stroke-width="3" opacity="0.6">
+      <line x1="0" y1="-310" x2="0" y2="-288"/>
+      <line x1="0" y1="288"  x2="0" y2="310"/>
+      <line x1="-310" y1="0" x2="-288" y2="0"/>
+      <line x1="288"  y1="0" x2="310"  y2="0"/>
+    </g>
   </g>
+
+  <rect width="1920" height="1080" fill="url(#vig)"/>
 
   <!-- HUD frame -->
-  <g stroke="#00d9ff" opacity="0.28" fill="none" stroke-width="1.6">
-    <path d="M60 60 h120 M60 60 v70"/>
-    <path d="M1860 60 h-120 M1860 60 v70"/>
-    <path d="M60 1020 h120 M60 1020 v-70"/>
-    <path d="M1860 1020 h-120 M1860 1020 v-70"/>
+  <g stroke="#5fe4ff" opacity="0.72" fill="none" stroke-width="2.4">
+    <path d="M56 56 h140 M56 56 v82"/>
+    <path d="M1864 56 h-140 M1864 56 v82"/>
+    <path d="M56 1024 h140 M56 1024 v-82"/>
+    <path d="M1864 1024 h-140 M1864 1024 v-82"/>
   </g>
-  <line x1="60" y1="196" x2="1860" y2="196" stroke="#00d9ff" stroke-width="1" opacity="0.16"/>
+  <line x1="56" y1="202" x2="1864" y2="202" stroke="#4fd8f5" stroke-width="1.6" opacity="0.42"/>
 
-  <text x="960" y="128" text-anchor="middle" font-family="monospace" font-size="42"
-        letter-spacing="16" fill="#00d9ff" opacity="0.92">J.A.R.V.I.S.</text>
-  <text x="960" y="168" text-anchor="middle" font-family="monospace" font-size="17"
-        letter-spacing="7" fill="#86a5b3" opacity="0.9">BOOT SEQUENCE — SELECT AN OPERATING SYSTEM</text>
+  <text x="118" y="130" text-anchor="start" font-family="monospace" font-size="46"
+        letter-spacing="17" fill="#8df0ff" filter="url(#glow)" opacity="0.55">J.A.R.V.I.S.</text>
+  <text x="118" y="130" text-anchor="start" font-family="monospace" font-size="46"
+        letter-spacing="17" fill="#d6f9ff">J.A.R.V.I.S.</text>
+  <text x="118" y="172" text-anchor="start" font-family="monospace" font-size="18"
+        letter-spacing="8" fill="#8fb8c8">BOOT SEQUENCE — SELECT AN OPERATING SYSTEM</text>
 </svg>
