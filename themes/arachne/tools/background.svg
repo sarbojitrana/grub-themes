@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <!--
+    ARACHNE - background art for the grub-themes "arachne" theme.
+
+    Comic-print look: Ben-Day halftone dots, speed lines out of the emblem, an
+    orb web slung across the corner, and a colour plate printed out of register
+    (the cyan ghost behind the red spider). All original vector work.
+
+    Re-render with `grub-themes build arachne`.
+  -->
+  <defs>
+    <radialGradient id="sky" cx="28%" cy="40%" r="88%">
+      <stop offset="0%"   stop-color="#271350"/>
+      <stop offset="46%"  stop-color="#160b30"/>
+      <stop offset="100%" stop-color="#08040f"/>
+    </radialGradient>
+
+    <!-- Ben-Day dots: two plates at different pitches, as a comic press would -->
+    <pattern id="dotsMag" patternUnits="userSpaceOnUse" width="20" height="20">
+      <circle cx="10" cy="10" r="3.6" fill="#ff2e63"/>
+    </pattern>
+    <pattern id="dotsCyan" patternUnits="userSpaceOnUse" width="28" height="28"
+             patternTransform="rotate(18)">
+      <circle cx="14" cy="14" r="3.2" fill="#2bd9ff"/>
+    </pattern>
+    <radialGradient id="maskMag" cx="30%" cy="58%" r="50%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="maskCyan" cx="74%" cy="8%" r="58%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="mMag"><rect width="1920" height="1080" fill="url(#maskMag)"/></mask>
+    <mask id="mCyan"><rect width="1920" height="1080" fill="url(#maskCyan)"/></mask>
+
+    <radialGradient id="flare" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#ff2e63" stop-opacity="0.34"/>
+      <stop offset="52%"  stop-color="#7a1bff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#7a1bff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="scrim" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%"   stop-color="#08040f" stop-opacity="0.82"/>
+      <stop offset="55%"  stop-color="#08040f" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#08040f" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="42%" cy="52%" r="78%">
+      <stop offset="52%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <g id="spider">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M 22 -26 C 64 -74, 110 -94, 152 -92" stroke-width="14"/>
+        <path d="M 152 -92 C 188 -90, 206 -62, 208 -6" stroke-width="9"/>
+        <path d="M 24 -8  C 72 -44, 128 -58, 172 -50"  stroke-width="14"/>
+        <path d="M 172 -50 C 208 -44, 228 -14, 230 44"  stroke-width="9"/>
+        <path d="M 24 8   C 74 -4,  132 -6,  176 8"    stroke-width="14"/>
+        <path d="M 176 8  C 210 18, 226 46, 226 100"    stroke-width="9"/>
+        <path d="M 20 22  C 66 34,  114 52, 148 78"    stroke-width="14"/>
+        <path d="M 148 78 C 176 100, 186 126, 184 158"  stroke-width="9"/>
+      </g>
+      <g fill="currentColor">
+        <ellipse cx="0" cy="-20" rx="30" ry="23"/>
+        <ellipse cx="0" cy="34" rx="42" ry="58"/>
+      </g>
+    </g>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="585" cy="618" r="500" fill="url(#flare)"/>
+
+  <rect width="1920" height="1080" fill="url(#dotsMag)"  mask="url(#mMag)"  opacity="0.24"/>
+  <rect width="1920" height="1080" fill="url(#dotsCyan)" mask="url(#mCyan)" opacity="0.16"/>
+
+  <!-- speed lines -->
+  <g>
+      <path d="M 238 726 L -643 1006 L -648 989 L 237 724 Z" fill="#ff2e63" opacity="0.127"/>
+      <path d="M 734 990 L 959 1538 L 943 1544 L 731 991 Z" fill="#f6f2ff" opacity="0.058"/>
+      <path d="M 489 896 L 222 1691 L 203 1684 L 487 895 Z" fill="#f6f2ff" opacity="0.104"/>
+      <path d="M 309 830 L -311 1315 L -322 1299 L 308 828 Z" fill="#ff2e63" opacity="0.051"/>
+      <path d="M 301 567 L -75 502 L -73 496 L 301 566 Z" fill="#f6f2ff" opacity="0.12"/>
+      <path d="M 416 945 L 241 1288 L 234 1285 L 414 945 Z" fill="#f6f2ff" opacity="0.095"/>
+      <path d="M 401 322 L 162 -54 L 178 -64 L 404 320 Z" fill="#f6f2ff" opacity="0.114"/>
+      <path d="M 460 907 L 281 1324 L 276 1322 L 459 906 Z" fill="#f6f2ff" opacity="0.086"/>
+      <path d="M 777 340 L 1308 -447 L 1330 -432 L 779 341 Z" fill="#f6f2ff" opacity="0.069"/>
+      <path d="M 843 490 L 1304 255 L 1311 268 L 844 492 Z" fill="#2bd9ff" opacity="0.057"/>
+      <path d="M 312 330 L 8 12 L 13 8 L 313 329 Z" fill="#f6f2ff" opacity="0.051"/>
+      <path d="M 232 843 L -51 1030 L -59 1018 L 231 841 Z" fill="#f6f2ff" opacity="0.055"/>
+      <path d="M 673 324 L 858 -303 L 871 -299 L 675 325 Z" fill="#f6f2ff" opacity="0.139"/>
+      <path d="M 626 278 L 686 -243 L 696 -242 L 628 278 Z" fill="#f6f2ff" opacity="0.05"/>
+      <path d="M 864 296 L 1303 -222 L 1322 -205 L 867 298 Z" fill="#f6f2ff" opacity="0.069"/>
+      <path d="M 264 870 L -297 1314 L -302 1307 L 263 869 Z" fill="#f6f2ff" opacity="0.069"/>
+      <path d="M 565 1013 L 544 1496 L 535 1496 L 564 1013 Z" fill="#f6f2ff" opacity="0.057"/>
+      <path d="M 682 981 L 749 1223 L 742 1225 L 680 981 Z" fill="#ff2e63" opacity="0.091"/>
+      <path d="M 926 527 L 1567 349 L 1572 370 L 926 530 Z" fill="#f6f2ff" opacity="0.106"/>
+      <path d="M 469 910 L 218 1555 L 201 1548 L 467 909 Z" fill="#f6f2ff" opacity="0.117"/>
+      <path d="M 873 504 L 1746 148 L 1756 172 L 874 506 Z" fill="#ff2e63" opacity="0.057"/>
+      <path d="M 868 704 L 1462 882 L 1459 891 L 868 706 Z" fill="#2bd9ff" opacity="0.073"/>
+      <path d="M 749 287 L 951 -123 L 958 -120 L 751 288 Z" fill="#f6f2ff" opacity="0.061"/>
+      <path d="M 210 668 L -479 761 L -480 754 L 210 666 Z" fill="#f6f2ff" opacity="0.133"/>
+      <path d="M 666 889 L 795 1308 L 786 1311 L 665 889 Z" fill="#f6f2ff" opacity="0.054"/>
+      <path d="M 514 971 L 327 1912 L 317 1910 L 513 970 Z" fill="#f6f2ff" opacity="0.13"/>
+      <path d="M 961 570 L 1705 471 L 1708 489 L 961 573 Z" fill="#f6f2ff" opacity="0.103"/>
+      <path d="M 896 455 L 1342 219 L 1346 227 L 897 457 Z" fill="#f6f2ff" opacity="0.052"/>
+      <path d="M 353 353 L -163 -233 L -153 -242 L 355 351 Z" fill="#f6f2ff" opacity="0.057"/>
+      <path d="M 210 508 L -661 259 L -654 236 L 211 505 Z" fill="#f6f2ff" opacity="0.121"/>
+      <path d="M 871 447 L 1509 58 L 1520 78 L 872 450 Z" fill="#2bd9ff" opacity="0.135"/>
+      <path d="M 934 684 L 1181 727 L 1179 738 L 933 686 Z" fill="#2bd9ff" opacity="0.102"/>
+      <path d="M 358 435 L -201 -8 L -187 -26 L 360 432 Z" fill="#2bd9ff" opacity="0.116"/>
+      <path d="M 287 871 L -221 1307 L -230 1296 L 286 869 Z" fill="#ff2e63" opacity="0.058"/>
+      <path d="M 585 334 L 579 -351 L 593 -351 L 586 334 Z" fill="#f6f2ff" opacity="0.136"/>
+      <path d="M 887 876 L 1444 1345 L 1434 1357 L 885 877 Z" fill="#f6f2ff" opacity="0.083"/>
+      <path d="M 817 908 L 1211 1392 L 1196 1403 L 815 910 Z" fill="#f6f2ff" opacity="0.109"/>
+      <path d="M 199 767 L -249 945 L -254 930 L 198 764 Z" fill="#f6f2ff" opacity="0.107"/>
+      <path d="M 714 247 L 840 -121 L 847 -118 L 716 247 Z" fill="#f6f2ff" opacity="0.102"/>
+      <path d="M 464 893 L 225 1451 L 208 1444 L 462 892 Z" fill="#f6f2ff" opacity="0.114"/>
+      <path d="M 891 518 L 1237 401 L 1239 410 L 891 520 Z" fill="#f6f2ff" opacity="0.133"/>
+      <path d="M 748 323 L 1046 -227 L 1061 -218 L 750 324 Z" fill="#ff2e63" opacity="0.091"/>
+      <path d="M 839 746 L 1631 1144 L 1627 1151 L 839 747 Z" fill="#f6f2ff" opacity="0.101"/>
+      <path d="M 441 990 L 351 1227 L 346 1226 L 440 989 Z" fill="#2bd9ff" opacity="0.067"/>
+      <path d="M 622 300 L 711 -512 L 733 -509 L 625 301 Z" fill="#f6f2ff" opacity="0.09"/>
+      <path d="M 325 344 L -257 -259 L -237 -277 L 327 341 Z" fill="#f6f2ff" opacity="0.068"/>
+      <path d="M 282 667 L 38 708 L 36 700 L 282 665 Z" fill="#f6f2ff" opacity="0.066"/>
+      <path d="M 540 947 L 441 1696 L 425 1694 L 538 946 Z" fill="#ff2e63" opacity="0.14"/>
+      <path d="M 806 960 L 1219 1596 L 1210 1602 L 804 961 Z" fill="#2bd9ff" opacity="0.134"/>
+      <path d="M 532 323 L 427 -243 L 441 -245 L 534 323 Z" fill="#f6f2ff" opacity="0.084"/>
+      <path d="M 210 447 L -548 110 L -536 85 L 212 444 Z" fill="#2bd9ff" opacity="0.079"/>
+      <path d="M 878 584 L 1752 476 L 1755 499 L 878 587 Z" fill="#f6f2ff" opacity="0.069"/>
+      <path d="M 930 366 L 1704 -208 L 1716 -191 L 931 368 Z" fill="#f6f2ff" opacity="0.074"/>
+      <path d="M 529 341 L 405 -260 L 410 -261 L 529 341 Z" fill="#f6f2ff" opacity="0.1"/>
+      <path d="M 624 267 L 649 7 L 661 9 L 627 267 Z" fill="#f6f2ff" opacity="0.089"/>
+      <path d="M 937 695 L 1669 849 L 1664 872 L 936 698 Z" fill="#2bd9ff" opacity="0.063"/>
+      <path d="M 198 579 L -659 499 L -657 477 L 199 576 Z" fill="#2bd9ff" opacity="0.102"/>
+      <path d="M 437 253 L 220 -269 L 234 -274 L 439 252 Z" fill="#ff2e63" opacity="0.107"/>
+      <path d="M 182 561 L -466 473 L -464 461 L 183 559 Z" fill="#2bd9ff" opacity="0.136"/>
+      <path d="M 839 347 L 1156 6 L 1161 11 L 840 348 Z" fill="#ff2e63" opacity="0.097"/>
+      <path d="M 306 482 L -267 205 L -261 193 L 307 480 Z" fill="#ff2e63" opacity="0.084"/>
+      <path d="M 306 551 L -588 339 L -583 322 L 307 549 Z" fill="#ff2e63" opacity="0.061"/>
+      <path d="M 840 786 L 1618 1293 L 1608 1307 L 839 787 Z" fill="#2bd9ff" opacity="0.074"/>
+      <path d="M 290 669 L -261 771 L -264 754 L 290 667 Z" fill="#2bd9ff" opacity="0.097"/>
+      <path d="M 852 834 L 1056 997 L 1052 1002 L 851 835 Z" fill="#f6f2ff" opacity="0.053"/>
+      <path d="M 743 851 L 1000 1221 L 989 1228 L 742 852 Z" fill="#f6f2ff" opacity="0.106"/>
+      <path d="M 894 856 L 1158 1055 L 1151 1063 L 892 858 Z" fill="#f6f2ff" opacity="0.115"/>
+      <path d="M 460 226 L 378 -18 L 389 -22 L 462 225 Z" fill="#ff2e63" opacity="0.105"/>
+      <path d="M 187 521 L -431 375 L -429 365 L 187 520 Z" fill="#f6f2ff" opacity="0.127"/>
+      <path d="M 272 355 L -47 94 L -37 82 L 274 353 Z" fill="#f6f2ff" opacity="0.131"/>
+      <path d="M 454 918 L 88 1765 L 77 1760 L 453 917 Z" fill="#f6f2ff" opacity="0.13"/>
+      <path d="M 796 853 L 1318 1430 L 1309 1437 L 795 854 Z" fill="#f6f2ff" opacity="0.089"/>
+      <path d="M 922 487 L 1630 208 L 1634 217 L 922 488 Z" fill="#f6f2ff" opacity="0.059"/>
+      <path d="M 283 477 L -487 122 L -481 109 L 283 475 Z" fill="#ff2e63" opacity="0.107"/>
+      <path d="M 348 977 L -117 1695 L -138 1681 L 345 975 Z" fill="#2bd9ff" opacity="0.06"/>
+      <path d="M 938 701 L 1543 840 L 1540 855 L 937 704 Z" fill="#f6f2ff" opacity="0.067"/>
+      <path d="M 815 820 L 1085 1054 L 1080 1059 L 814 821 Z" fill="#f6f2ff" opacity="0.102"/>
+      <path d="M 839 903 L 1038 1125 L 1034 1128 L 838 904 Z" fill="#2bd9ff" opacity="0.092"/>
+      <path d="M 242 585 L -440 522 L -439 516 L 242 585 Z" fill="#f6f2ff" opacity="0.126"/>
+      <path d="M 732 934 L 1067 1646 L 1054 1652 L 730 935 Z" fill="#f6f2ff" opacity="0.104"/>
+      <path d="M 915 841 L 1314 1108 L 1310 1113 L 915 842 Z" fill="#2bd9ff" opacity="0.101"/>
+      <path d="M 720 960 L 904 1417 L 889 1422 L 717 961 Z" fill="#f6f2ff" opacity="0.132"/>
+      <path d="M 570 222 L 534 -620 L 550 -621 L 572 222 Z" fill="#f6f2ff" opacity="0.129"/>
+      <path d="M 450 247 L 169 -509 L 184 -514 L 452 246 Z" fill="#f6f2ff" opacity="0.056"/>
+      <path d="M 395 912 L 262 1121 L 256 1118 L 393 911 Z" fill="#ff2e63" opacity="0.054"/>
+      <path d="M 525 1038 L 462 1495 L 453 1494 L 523 1038 Z" fill="#2bd9ff" opacity="0.101"/>
+      <path d="M 254 549 L -707 357 L -703 335 L 254 547 Z" fill="#f6f2ff" opacity="0.119"/>
+      <path d="M 866 582 L 1555 487 L 1557 505 L 866 584 Z" fill="#f6f2ff" opacity="0.09"/>
+      <path d="M 191 607 L -528 588 L -528 581 L 191 606 Z" fill="#f6f2ff" opacity="0.073"/>
+      <path d="M 885 414 L 1390 62 L 1402 81 L 887 417 Z" fill="#ff2e63" opacity="0.126"/>
+      <path d="M 867 820 L 1452 1235 L 1442 1248 L 865 822 Z" fill="#f6f2ff" opacity="0.085"/>
+      <path d="M 898 490 L 1780 118 L 1790 143 L 899 492 Z" fill="#ff2e63" opacity="0.105"/>
+      <path d="M 979 768 L 1496 961 L 1490 975 L 978 771 Z" fill="#ff2e63" opacity="0.078"/>
+      <path d="M 239 553 L -194 476 L -191 459 L 239 549 Z" fill="#f6f2ff" opacity="0.052"/>
+      <path d="M 636 254 L 730 -449 L 743 -447 L 638 254 Z" fill="#2bd9ff" opacity="0.055"/>
+      <path d="M 451 930 L 191 1548 L 175 1541 L 449 929 Z" fill="#f6f2ff" opacity="0.057"/>
+  </g>
+
+  <!-- the web -->
+  <g stroke="#f6f2ff" fill="none" opacity="0.16" stroke-width="2">
+      <line x1="-30" y1="1120" x2="8" y2="41"/>
+      <line x1="-30" y1="1120" x2="268" y2="82"/>
+      <line x1="-30" y1="1120" x2="510" y2="185"/>
+      <line x1="-30" y1="1120" x2="720" y2="343"/>
+      <line x1="-30" y1="1120" x2="886" y2="548"/>
+      <line x1="-30" y1="1120" x2="997" y2="786"/>
+      <line x1="-30" y1="1120" x2="1047" y2="1045"/>
+  </g>
+  <g stroke="#f6f2ff" fill="none" opacity="0.13" stroke-width="1.6">
+      <path d="M -23 930 Q -6 970 22 937"/>
+      <path d="M 22 937 Q 29 980 65 955"/>
+      <path d="M 65 955 Q 61 999 102 983"/>
+      <path d="M 102 983 Q 88 1024 131 1019"/>
+      <path d="M 131 1019 Q 108 1056 151 1061"/>
+      <path d="M 151 1061 Q 119 1091 160 1107"/>
+      <path d="M -18 790 Q 11 859 61 803"/>
+      <path d="M 61 803 Q 73 877 135 834"/>
+      <path d="M 135 834 Q 129 909 199 883"/>
+      <path d="M 199 883 Q 175 954 250 945"/>
+      <path d="M 250 945 Q 209 1008 284 1018"/>
+      <path d="M 284 1018 Q 229 1070 299 1097"/>
+      <path d="M -13 640 Q 30 741 102 659"/>
+      <path d="M 102 659 Q 120 767 210 704"/>
+      <path d="M 210 704 Q 201 813 303 775"/>
+      <path d="M 303 775 Q 268 878 377 866"/>
+      <path d="M 377 866 Q 318 958 427 972"/>
+      <path d="M 427 972 Q 347 1047 449 1087"/>
+      <path d="M -8 480 Q 50 614 146 505"/>
+      <path d="M 146 505 Q 170 649 290 566"/>
+      <path d="M 290 566 Q 278 711 415 660"/>
+      <path d="M 415 660 Q 368 798 513 781"/>
+      <path d="M 513 781 Q 434 904 579 922"/>
+      <path d="M 579 922 Q 473 1022 608 1075"/>
+      <path d="M -2 310 Q 71 480 193 341"/>
+      <path d="M 193 341 Q 223 524 375 419"/>
+      <path d="M 375 419 Q 360 602 533 537"/>
+      <path d="M 533 537 Q 474 712 657 691"/>
+      <path d="M 657 691 Q 557 846 740 870"/>
+      <path d="M 740 870 Q 606 996 778 1063"/>
+      <path d="M 4 141 Q 93 346 240 178"/>
+      <path d="M 240 178 Q 276 398 460 271"/>
+      <path d="M 460 271 Q 442 494 651 415"/>
+      <path d="M 651 415 Q 579 627 801 601"/>
+      <path d="M 801 601 Q 681 789 902 817"/>
+      <path d="M 902 817 Q 740 970 948 1052"/>
+  </g>
+
+  <!-- the emblem: cyan plate printed a few millimetres off register -->
+  <g transform="translate(585,618) scale(1.18)">
+    <g color="#2bd9ff" opacity="0.85" transform="translate(13,-10)">
+      <use href="#spider"/>
+      <use href="#spider" transform="scale(-1,1)"/>
+    </g>
+    <g color="#ff2e63">
+      <use href="#spider"/>
+      <use href="#spider" transform="scale(-1,1)"/>
+    </g>
+  </g>
+
+  <rect x="820" width="1100" height="1080" fill="url(#scrim)"/>
+  <rect width="1920" height="1080" fill="url(#vig)"/>
+
+  <!-- panel border -->
+  <rect x="34" y="34" width="1852" height="1012" fill="none"
+        stroke="#f6f2ff" stroke-opacity="0.16" stroke-width="5"/>
+
+  <!-- title, printed with the plates out of register -->
+  <g font-family="JetBrainsMono NF, JetBrains Mono, monospace" font-weight="700">
+    <text x="104" y="152" font-size="80" letter-spacing="12" fill="#2bd9ff" opacity="0.9"
+          transform="translate(-7,6)">ARACHNE</text>
+    <text x="104" y="152" font-size="80" letter-spacing="12" fill="#ff2e63" opacity="0.9"
+          transform="translate(7,-6)">ARACHNE</text>
+    <text x="104" y="152" font-size="80" letter-spacing="12" fill="#f6f2ff">ARACHNE</text>
+  </g>
+
+  <!-- caption box, the way a comic narrates -->
+  <g transform="rotate(-1.1 108 196)">
+    <rect x="112" y="180" width="500" height="50" fill="#0b0518" opacity="0.9"/>
+    <rect x="106" y="174" width="500" height="50" fill="#f6f2ff"/>
+    <text x="126" y="207" font-family="JetBrainsMono NF, JetBrains Mono, monospace"
+          font-size="19" font-weight="700" letter-spacing="5" fill="#12071e">SELECT AN OPERATING SYSTEM</text>
+  </g>
+</svg>

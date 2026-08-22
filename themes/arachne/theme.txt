@@ -1,0 +1,90 @@
+# ─────────────────────────────────────────────────────────────
+#  ARACHNE — GRUB2 gfxmenu theme
+#  Font names below MUST match the names baked into the .pf2
+#  files by grub-mkfont ("JetBrainsMono NF Regular <size>").
+#  Run `grub-themes build arachne` to regenerate both.
+# ─────────────────────────────────────────────────────────────
+
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#0b0518"
+
+terminal-font: "JetBrainsMono NF Regular 14"
+# The terminal_box_*.png slices are fully transparent. GRUB draws this box when
+# an entry prints anything -- which happens when you press Enter on an entry,
+# but not when the countdown expires. Any visible fill reads as a black slab
+# over the theme for as long as the kernel takes to load. Keep the property:
+# removing it makes GRUB fall back to its own solid console instead.
+terminal-box: "terminal_box_*.png"
+terminal-left: "6%"
+terminal-top: "12%"
+terminal-width: "88%"
+terminal-height: "76%"
+terminal-border: "0"
+
+# ---------------------------------------------------------- boot menu
+# The emblem owns the left panel, so the menu sits in the right one.
++ boot_menu {
+  left   = 52%
+  top    = 30%
+  width  = 42%
+  height = 46%
+
+  item_font           = "JetBrainsMono NF Regular 20"
+  item_color          = "#dbd4f4"
+  selected_item_font  = "JetBrainsMono NF Bold 18"
+  # White on the red plate. This reads only because the plate actually renders:
+  # the select_*.png slices must stay colour-type 6, which is what
+  # `grub-themes build` and `grub-themes lint` are for.
+  selected_item_color = "#ffffff"
+
+  icon_width      = 0
+  icon_height     = 0
+  item_icon_space = 0
+
+  item_height  = 46
+  item_padding = 10
+  item_spacing = 10
+
+  selected_item_pixmap_style = "select_*.png"
+  scrollbar = false
+}
+
+# ------------------------------------------------------- countdown bar
++ progress_bar {
+  id     = "__timeout__"
+  left   = 52%
+  width  = 30%
+  top    = 80%
+  height = 5
+
+  show_text    = false
+  fg_color     = "#2bd9ff"
+  bg_color     = "#1c0f38"
+  border_color = "#1c0f38"
+  bar_style       = "progress_bar_*.png"
+  highlight_style = "progress_highlight_*.png"
+}
+
+# ------------------------------------------------------ countdown text
++ label {
+  id    = "__timeout__"
+  text  = "swinging in %d s"
+  left  = 52%
+  top   = 83%
+  width = 30%
+  align = "left"
+  font  = "JetBrainsMono NF Regular 14"
+  color = "#a99ccf"
+}
+
+# ------------------------------------------------------------ key hints
++ label {
+  top   = 100%-58
+  left  = 0
+  width = 100%
+  align = "center"
+  text  = "↑ ↓  select      ENTER  boot      E  edit      C  console"
+  font  = "JetBrainsMono NF Regular 12"
+  color = "#a99ccf"
+}
