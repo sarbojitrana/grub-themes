@@ -37,11 +37,77 @@ type Manifest struct {
 		Aspect      string `toml:"aspect"`
 	} `toml:"display"`
 
-	Build struct {
-		Background string `toml:"background"`
-		Assets     string `toml:"assets"`
-		Fonts      string `toml:"fonts"`
-	} `toml:"build"`
+	// Assets is the declarative pixmap description. When present,
+	// `grub-themes build <id>` generates the selection highlight, terminal box
+	// and progress bar from it, correctly encoded, so a theme author never
+	// writes ImageMagick and never meets the colour-type 6 trap.
+	Assets *Assets `toml:"assets"`
+}
+
+// Assets describes the pixmaps grub-themes generates for a theme.
+type Assets struct {
+	Selection struct {
+		// Style is pill | bar | underline | none.
+		Style  string `toml:"style"`
+		Fill   string `toml:"fill"`
+		Text   string `toml:"text"`
+		Radius *int   `toml:"radius"`
+		Height *int   `toml:"height"`
+		Width  *int   `toml:"width"`
+		// Shadow is an optional hard offset ghost behind the highlight: a
+		// comic-book drop shadow, or a chromatic split at the end caps.
+		Shadow   string `toml:"shadow"`
+		ShadowDX *int   `toml:"shadow_dx"`
+		ShadowDY *int   `toml:"shadow_dy"`
+		// Thickness is the underline height, for style = "underline".
+		Thickness *int `toml:"thickness"`
+	} `toml:"selection"`
+
+	TerminalBox struct {
+		// Fill defaults to transparent, which is almost always what you want:
+		// GRUB paints this box while the kernel loads, so any visible fill
+		// reads as a slab over the theme. See AGENTS.md.
+		Fill string `toml:"fill"`
+	} `toml:"terminal_box"`
+
+	Progress struct {
+		Track  string `toml:"track"`
+		Fill   string `toml:"fill"`
+		Height *int   `toml:"height"`
+	} `toml:"progress"`
+
+	Fonts *Fonts `toml:"fonts"`
+
+	Background *Background `toml:"background"`
+}
+
+// Background points at the vector source for the desktop image.
+//
+// The art itself is the one thing grub-themes does not generate -- that is the
+// creative work -- but it does render and re-encode it, so the author never
+// has to think about PNG colour types.
+type Background struct {
+	Source string `toml:"source"` // e.g. "tools/background.svg"
+	Out    string `toml:"out"`    // defaults to "background.png"
+	Width  int    `toml:"width"`
+	Height int    `toml:"height"`
+}
+
+// Fonts describes the .pf2 files `grub-themes build` bakes with grub-mkfont.
+//
+// GRUB matches a font by the name stored inside the .pf2 and never by
+// filename, so build prints the names it baked -- those are the strings
+// theme.txt has to use.
+type Fonts struct {
+	// Regular and Bold are TTF/OTF filenames, looked up in the usual system
+	// font directories and in the theme directory itself.
+	Regular string `toml:"regular"`
+	Bold    string `toml:"bold"`
+	// Prefix names the output files: <prefix>-<size>.pf2 and
+	// <prefix>-bold-<size>.pf2.
+	Prefix    string `toml:"prefix"`
+	Sizes     []int  `toml:"sizes"`
+	BoldSizes []int  `toml:"bold_sizes"`
 }
 
 // Theme is a manifest plus the directory it was loaded from.
@@ -79,6 +145,98 @@ func Load(dir string) (Theme, error) {
 		t.Manifest.Theme.ID = filepath.Base(dir)
 	}
 	return t, nil
+}
+
+// SearchPaths is where themes are looked for, in priority order:
+//
+//  1. $GRUB_THEMES_DIR, if set;
+//  2. themes/ in the repository you are standing in, so a checkout works
+//     without installing anything;
+//  3. $XDG_DATA_HOME/grub-themes/themes (~/.local/share/...) -- where
+//     `grub-themes new` puts a theme you are writing, so it shows up in the
+//     browser immediately;
+//  4. each of $XDG_DATA_DIRS (/usr/local/share and /usr/share by default) --
+//     the themes shipped by the package.
+//
+// Earlier paths win when two directories define the same theme id.
+func SearchPaths() []string {
+	if env := os.Getenv("GRUB_THEMES_DIR"); env != "" {
+		return filepath.SplitList(env)
+	}
+	var paths []string
+	if repo := repoThemes(); repo != "" {
+		paths = append(paths, repo)
+	}
+	paths = append(paths, UserDir())
+	for _, dir := range dataDirs() {
+		paths = append(paths, filepath.Join(dir, "grub-themes", "themes"))
+	}
+	return paths
+}
+
+// UserDir is where a theme you are writing lives.
+func UserDir() string {
+	if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
+		return filepath.Join(xdg, "grub-themes", "themes")
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "themes"
+	}
+	return filepath.Join(home, ".local", "share", "grub-themes", "themes")
+}
+
+// dataDirs is $XDG_DATA_DIRS, which is what makes an install under /usr/local
+// (the Makefile default) work as well as a distribution package under /usr.
+func dataDirs() []string {
+	if env := os.Getenv("XDG_DATA_DIRS"); env != "" {
+		return filepath.SplitList(env)
+	}
+	return []string{"/usr/local/share", "/usr/share"}
+}
+
+// repoThemes walks up from the working directory looking for a themes/
+// directory that actually contains themes.
+func repoThemes() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	for {
+		candidate := filepath.Join(dir, "themes")
+		if matches, _ := filepath.Glob(filepath.Join(candidate, "*", "theme.toml")); len(matches) > 0 {
+			return candidate
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
+}
+
+// DiscoverAll finds the themes in every search path, first definition winning.
+func DiscoverAll(roots []string) ([]Theme, error) {
+	seen := map[string]bool{}
+	var out []Theme
+	for _, root := range roots {
+		found, err := Discover(root)
+		if err != nil {
+			continue // a missing search path is normal, not an error
+		}
+		for _, t := range found {
+			id := t.Manifest.Theme.ID
+			if seen[id] {
+				continue
+			}
+			seen[id] = true
+			out = append(out, t)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Manifest.Theme.ID < out[j].Manifest.Theme.ID
+	})
+	return out, nil
 }
 
 // Discover finds every theme under root (normally "themes"), sorted by id.
