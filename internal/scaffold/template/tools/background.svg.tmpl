@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <!--
+    {{.Name}} — background art.
+
+    This is your canvas. Change anything; re-render with
+    `grub-themes build {{.ID}}`, which also re-encodes the PNG so GRUB can
+    actually decode it.
+
+    The menu is drawn over the LEFT half by theme.txt, so keep that side quiet
+    and put your artwork on the right.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0d131a"/>
+      <stop offset="55%"  stop-color="#111922"/>
+      <stop offset="100%" stop-color="#090e14"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="{{.Accent}}" stop-opacity="0.28"/>
+      <stop offset="60%"  stop-color="{{.Accent}}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="{{.Accent}}" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vig" cx="60%" cy="46%" r="80%">
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.5"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <!-- the motif -->
+  <g transform="translate(1400,540)">
+    <circle r="430" fill="url(#glow)"/>
+    <circle r="250" fill="none" stroke="{{.Accent}}" stroke-width="2" opacity="0.75"/>
+    <circle r="196" fill="none" stroke="{{.Accent}}" stroke-width="1.2" opacity="0.4"/>
+    <circle r="118" fill="{{.Accent}}" opacity="0.12"/>
+    <g stroke="{{.Accent}}" stroke-width="3" opacity="0.55">
+      <line x1="0" y1="-300" x2="0" y2="-272"/>
+      <line x1="0" y1="272"  x2="0" y2="300"/>
+      <line x1="-300" y1="0" x2="-272" y2="0"/>
+      <line x1="272"  y1="0" x2="300"  y2="0"/>
+    </g>
+  </g>
+
+  <rect width="1920" height="1080" fill="url(#vig)"/>
+
+  <!-- title -->
+  <g font-family="JetBrainsMono NF, JetBrains Mono, monospace">
+    <text x="118" y="128" fill="#e6edf5" font-size="66" font-weight="700"
+          letter-spacing="18">{{.Upper}}</text>
+    <text x="122" y="178" fill="#7f8c99" font-size="20" font-weight="500"
+          letter-spacing="8">SELECT AN OPERATING SYSTEM</text>
+    <rect x="120" y="204" width="240" height="3" fill="{{.Accent}}" opacity="0.9"/>
+  </g>
+</svg>

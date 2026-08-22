@@ -1,0 +1,86 @@
+# ─────────────────────────────────────────────────────────────
+#  {{.Name}} — GRUB2 gfxmenu theme
+#
+#  The font names below must match the names baked into the .pf2
+#  files. `grub-themes build {{.ID}}` prints them.
+# ─────────────────────────────────────────────────────────────
+
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#0b0f14"
+
+terminal-font: "JetBrainsMono NF Regular 14"
+# The terminal_box_*.png slices are fully transparent, on purpose: GRUB draws
+# this box whenever an entry prints output, which happens the moment you press
+# Enter. A visible fill would sit over your theme until the kernel has loaded.
+# Keep the property though -- removing it makes GRUB fall back to its own
+# solid console.
+terminal-box: "terminal_box_*.png"
+terminal-left: "6%"
+terminal-top: "12%"
+terminal-width: "88%"
+terminal-height: "76%"
+terminal-border: "0"
+
+# ---------------------------------------------------------- boot menu
++ boot_menu {
+  left   = 7%
+  top    = 32%
+  width  = 44%
+  height = 44%
+
+  item_font           = "JetBrainsMono NF Regular 20"
+  item_color          = "#c8d4de"
+  selected_item_font  = "JetBrainsMono NF Bold 18"
+  selected_item_color = "#0b0f14"
+
+  icon_width      = 0
+  icon_height     = 0
+  item_icon_space = 0
+
+  item_height  = 44
+  item_padding = 10
+  item_spacing = 12
+
+  selected_item_pixmap_style = "select_*.png"
+  scrollbar = false
+}
+
+# ------------------------------------------------------- countdown bar
++ progress_bar {
+  id     = "__timeout__"
+  left   = 7%
+  width  = 30%
+  top    = 80%
+  height = 5
+
+  show_text    = false
+  fg_color     = "{{.Accent}}"
+  bg_color     = "#141c24"
+  border_color = "#141c24"
+  bar_style       = "progress_bar_*.png"
+  highlight_style = "progress_highlight_*.png"
+}
+
+# ------------------------------------------------------ countdown text
++ label {
+  id    = "__timeout__"
+  text  = "booting default in %d s"
+  left  = 7%
+  top   = 83%
+  width = 30%
+  align = "left"
+  font  = "JetBrainsMono NF Regular 14"
+  color = "#7f8c99"
+}
+
+# ------------------------------------------------------------ key hints
++ label {
+  top   = 100%-58
+  left  = 0
+  width = 100%
+  align = "center"
+  text  = "↑ ↓  select      ENTER  boot      E  edit      C  console"
+  font  = "JetBrainsMono NF Regular 12"
+  color = "#7f8c99"
+}
