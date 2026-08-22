@@ -6,15 +6,18 @@
 package lint
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 
+	"github.com/sarbojitrana/grub-themes/internal/paint"
+	"github.com/sarbojitrana/grub-themes/internal/pf2"
 	"github.com/sarbojitrana/grub-themes/internal/theme"
 )
 
@@ -75,11 +78,19 @@ func Check(t theme.Theme) Result {
 	checkReferences(&r, string(src))
 	checkPNGs(&r)
 	checkFonts(&r, string(src))
+	checkAssets(&r, string(src))
 	return r
 }
 
 func checkManifest(r *Result) {
 	m := r.Theme.Manifest
+	// The id is what `apply` installs as and what GRUB_THEME points at, so a
+	// mismatch with the directory name is confusing at best.
+	if base := filepath.Base(r.Theme.Dir); m.Theme.ID != base {
+		r.add(Warning, "theme.toml",
+			fmt.Sprintf("theme.id is %q but the directory is %q", m.Theme.ID, base),
+			"keep them the same; the id is what the theme is installed as")
+	}
 	req := map[string]string{
 		"theme.name":    m.Theme.Name,
 		"theme.version": m.Theme.Version,
@@ -108,6 +119,9 @@ var (
 	reFontRef = regexp.MustCompile(`(?m)^\s*(?:terminal-font|item_font|selected_item_font|font)\s*[:=]\s*"([^"]+)"`)
 	reImgRef  = regexp.MustCompile(`(?m)^\s*desktop-image\s*:\s*"([^"]+)"`)
 	rePixmap  = regexp.MustCompile(`(?m)^\s*(?:\w+_style|terminal-box)\s*[:=]\s*"([^"]+\*\.png)"`)
+
+	reSelectedColor = regexp.MustCompile(`(?m)^\s*selected_item_color\s*=\s*"([^"]+)"`)
+	reItemHeight    = regexp.MustCompile(`(?m)^\s*item_height\s*=\s*(\d+)`)
 )
 
 // checkReferences verifies every file named in theme.txt actually exists.
@@ -187,9 +201,12 @@ func checkFonts(r *Result, src string) {
 	pf2s, _ := filepath.Glob(filepath.Join(r.Theme.Dir, "*.pf2"))
 	names := map[string]string{} // font name -> file it came from
 	for _, p := range pf2s {
-		for _, n := range pf2Names(p) {
-			names[n] = filepath.Base(p)
+		n, err := pf2.Name(p)
+		if err != nil {
+			r.add(Error, filepath.Base(p), "cannot read this font: "+err.Error(), "")
+			continue
 		}
+		names[n] = filepath.Base(p)
 	}
 
 	seen := map[string]bool{}
@@ -200,9 +217,17 @@ func checkFonts(r *Result, src string) {
 		}
 		seen[want] = true
 		if _, ok := names[want]; !ok {
+			have := make([]string, 0, len(names))
+			for n := range names {
+				have = append(have, n)
+			}
+			sort.Strings(have)
+			hint := "run `grub-themes build " + r.Theme.Manifest.Theme.ID + "`; it prints the names to use"
+			if len(have) > 0 {
+				hint += " (this theme has: " + strings.Join(have, ", ") + ")"
+			}
 			r.add(Error, "theme.txt",
-				"font \""+want+"\" is not baked into any .pf2 in this theme",
-				"run the theme's build-fonts script; it prints the names to use")
+				"font \""+want+"\" is not baked into any .pf2 in this theme", hint)
 		}
 	}
 	if len(pf2s) == 0 {
@@ -211,34 +236,67 @@ func checkFonts(r *Result, src string) {
 	}
 }
 
-// pf2Names extracts printable name strings from a .pf2 font.
-func pf2Names(path string) []string {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil
+// checkAssets validates the declarative [assets] section against theme.txt.
+//
+// These are consistency checks rather than encoding ones: the generated files
+// are always correct, but the manifest and theme.txt can still disagree about
+// what they describe.
+func checkAssets(r *Result, src string) {
+	a := r.Theme.Manifest.Assets
+	if a == nil {
+		return // a hand-made theme; nothing declared to cross-check
 	}
-	defer f.Close()
+	sel := a.Selection
+	if sel.Style == "none" {
+		return
+	}
 
-	// The NAME section sits near the start; scanning the first few KB is
-	// enough and avoids reading a megabyte of glyph data.
-	buf := make([]byte, 4096)
-	n, _ := bufio.NewReader(f).Read(buf)
-	buf = buf[:n]
+	fill, errFill := paint.Hex(sel.Fill)
+	text, errText := paint.Hex(sel.Text)
+	if errFill != nil {
+		r.add(Error, "theme.toml", "assets.selection.fill: "+errFill.Error(), "")
+	}
+	if errText != nil {
+		r.add(Error, "theme.toml", "assets.selection.text: "+errText.Error(), "")
+	}
 
-	var out []string
-	var cur []byte
-	for _, c := range buf {
-		if c >= 0x20 && c < 0x7f {
-			cur = append(cur, c)
-			continue
+	// Contrast between the highlight and the text drawn on it. This is the
+	// check that catches "the selected entry looks blanked out": if the two
+	// are close, a highlight that fails to render leaves unreadable text and
+	// no clue why.
+	if errFill == nil && errText == nil && fill.A > 0 && sel.Text != "" {
+		switch ratio := paint.Contrast(fill, text); {
+		case ratio < 3:
+			r.add(Error, "theme.toml",
+				fmt.Sprintf("selection text on the highlight has a contrast ratio of %.1f:1", ratio),
+				"3:1 is the minimum for large text; pick a darker or lighter assets.selection.text")
+		case ratio < 4.5:
+			r.add(Warning, "theme.toml",
+				fmt.Sprintf("selection text contrast is %.1f:1", ratio),
+				"4.5:1 reads comfortably at any size")
 		}
-		if len(cur) >= 6 {
-			out = append(out, string(cur))
+	}
+
+	// theme.txt draws the text; theme.toml only describes it. If they
+	// disagree, the contrast checked above is not the contrast you get.
+	if m := reSelectedColor.FindStringSubmatch(src); m != nil && sel.Text != "" && errText == nil {
+		// Compare the parsed colours, so "#fff" and "#FFFFFF" agree.
+		if drawn, err := paint.Hex(m[1]); err == nil && drawn != text {
+			r.add(Warning, "theme.txt",
+				fmt.Sprintf("selected_item_color is %s but assets.selection.text is %s", m[1], sel.Text),
+				"keep them equal, or the contrast check is measuring the wrong colour")
 		}
-		cur = nil
 	}
-	if len(cur) >= 6 {
-		out = append(out, string(cur))
+
+	// GRUB scales the pixmap to the item height; matching them keeps the
+	// highlight pixel-exact.
+	if sel.Height != nil {
+		if m := reItemHeight.FindStringSubmatch(src); m != nil {
+			if h, err := strconv.Atoi(m[1]); err == nil && h != *sel.Height {
+				r.add(Warning, "theme.txt",
+					fmt.Sprintf("item_height is %d but assets.selection.height is %d", h, *sel.Height),
+					"keep them equal so the highlight is not scaled")
+			}
+		}
 	}
-	return out
 }
