@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- grub-themes application icon: a boot menu with one entry selected. -->
+  <defs>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#16212c"/>
+      <stop offset="100%" stop-color="#0b1219"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="30%" r="60%">
+      <stop offset="0%"   stop-color="#00d9ff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#00d9ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="8" y="16" width="112" height="86" rx="10" fill="url(#screen)"
+        stroke="#00d9ff" stroke-opacity="0.55" stroke-width="3"/>
+  <rect x="8" y="16" width="112" height="86" rx="10" fill="url(#glow)"/>
+
+  <!-- the selected entry -->
+  <rect x="22" y="34" width="84" height="16" rx="8" fill="#00d9ff"/>
+  <rect x="30" y="39" width="42" height="6" rx="3" fill="#05202a"/>
+
+  <!-- the other entries -->
+  <rect x="22" y="58" width="66" height="6" rx="3" fill="#8fb6c6" opacity="0.75"/>
+  <rect x="22" y="72" width="52" height="6" rx="3" fill="#8fb6c6" opacity="0.55"/>
+
+  <!-- countdown bar -->
+  <rect x="22" y="88" width="84" height="4" rx="2" fill="#1d3846"/>
+  <rect x="22" y="88" width="46" height="4" rx="2" fill="#00d9ff"/>
+
+  <!-- stand -->
+  <rect x="52" y="102" width="24" height="10" fill="#16212c"/>
+  <rect x="38" y="110" width="52" height="8" rx="4" fill="#1d3846"/>
+</svg>

@@ -1,0 +1,32 @@
+# Maintainer: Sarbojit Rana (https://github.com/sarbojitrana)
+pkgname=grub-themes
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Browse GRUB boot themes and apply one safely, with rollback"
+arch=('x86_64' 'aarch64')
+url="https://github.com/sarbojitrana/grub-themes"
+license=('MIT')
+makedepends=('go' 'git')
+optdepends=(
+  'grub: required to apply a theme, and to rebake fonts when building one'
+  'librsvg: re-render theme backgrounds from their SVG sources'
+  'imagemagick: alternative SVG renderer'
+)
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CGO_ENABLED=0
+  make build VERSION="$pkgver"
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  make test
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make install PREFIX=/usr DESTDIR="$pkgdir"
+}

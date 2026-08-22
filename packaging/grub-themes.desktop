@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=GRUB Themes
+GenericName=Boot Menu Theme Browser
+Comment=Browse GRUB boot themes and apply one safely
+# Terminal=true is what makes this work from rofi, a launcher or an application
+# menu: the browser is a terminal UI, so the launcher opens a terminal for it.
+Terminal=true
+Exec=grub-themes
+Icon=grub-themes
+Categories=Settings;DesktopSettings;
+Keywords=grub;boot;bootloader;theme;splash;bootmenu;
+StartupNotify=false
