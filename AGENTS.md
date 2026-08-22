@@ -15,27 +15,35 @@ Scope, decided 2026-08-19:
 
 - **Go**, single static binary. Packaging across apt/dnf/pacman is the main
   cross-distro cost, and one binary makes it nearly free.
-- **TUI + CLI.** No GTK/Qt dependency, works over SSH, no display server.
+- **TUI + CLI.** No GTK/Qt dependency, works over SSH, no display server. It
+  reaches application menus and rofi through a desktop entry with
+  `Terminal=true`, not by growing a second UI.
 - **Themes are data, not code.** A theme is a directory under `themes/` with a
-  `theme.toml` manifest. Contributors adding a theme never touch Go.
+  `theme.toml` manifest. Contributors adding a theme never touch Go, never
+  write shell, and never run ImageMagick.
 
 ## Layout
 
 ```
-cmd/grub-themes/      CLI entry point
+cmd/grub-themes/      CLI entry point and subcommands
 internal/
-  theme/              manifest parsing + discovery      [done]
-  lint/               validation, no GRUB needed        [done]
-  preview/            render theme.txt to a PNG         [TODO]
-  install/            apply/remove, with rollback       [TODO]
-  tui/                bubbletea browser                 [TODO]
+  theme/              manifest parsing + discovery across search paths
+  paint/              raster helpers and the PNG encoder (see below)
+  pf2/                GRUB bitmap font reader
+  assets/             theme.toml [assets] -> pixmaps, background, fonts
+  lint/               validation, no GRUB needed
+  preview/            render theme.txt to a PNG
+  install/            apply/remove, with backup and rollback
+  scaffold/           `new`, from a template embedded in the binary
+  tui/                bubbletea browser
 themes/<id>/          one directory per theme
-  theme.toml          manifest
+  theme.toml          manifest — the only file you hand-edit besides the art
   theme.txt           GRUB gfxmenu definition
-  *.png *.pf2         assets
-  preview.png         what the browser shows
-  tools/              that theme's asset generators
-packaging/            nfpm config, PKGBUILD             [TODO]
+  tools/background.svg  the art source (optional; not installed)
+  *.png *.pf2         generated
+  preview.png         generated; what the browser shows
+packaging/            desktop entry, icon, PKGBUILD, nfpm config
+docs/                 build-your-own-theme guide
 ```
 
 ## State
@@ -43,16 +51,17 @@ packaging/            nfpm config, PKGBUILD             [TODO]
 | Piece | Status |
 |---|---|
 | `theme` package, `theme.toml` schema | done |
-| `lint` — catches all three known silent failures | done |
-| `list`, `lint` subcommands | done |
-| `preview` renderer | not started |
-| `install` / `apply` with rollback | logic exists in the old `install.sh`, needs porting |
-| TUI | not started |
+| `lint` — silent failures, contrast, manifest/theme.txt agreement | done |
+| `paint` — colour-type 6 PNG encoder | done |
+| `pf2` — font parsing | done |
+| `assets` — `build`: pixmaps, background, fonts | done |
+| `preview` renderer | done |
+| `install` / `apply` with rollback | done (ported from the old `install.sh`) |
+| `scaffold` — `new` | done |
+| TUI browser | done |
+| Packaging — desktop entry, Makefile, PKGBUILD, nfpm | done |
 | QEMU harness | not started |
-| Packaging | not started |
-
-The old shell installer is the reference implementation for `internal/install`.
-Its safety contract is described below and **must** be preserved.
+| Release binaries / AUR package published | not started |
 
 ## GRUB's silent failure modes
 
@@ -60,139 +69,128 @@ These are why `lint` exists. Each one produces a broken boot menu with no error
 anywhere.
 
 **PNG colour-type.** GRUB decodes **only colour-type 6 (truecolour+alpha) at
-bit depth 8**. Ask ImageMagick for a flat-coloured rectangle and it optimises to
-a 1-bit palette PNG, which GRUB drops entirely. Symptoms do not look like an
-image problem: the selected entry appears *blanked out* rather than highlighted
-(only `selected_item_color` took effect), and a themed terminal box becomes an
-opaque black slab while the kernel loads. `PNG32:` alone is not enough — you
-need `-define png:color-type=6 -define png:bit-depth=8`. Do **not** verify with
-`magick identify -format '%[type]'`; it reports `PaletteAlpha` for a valid
-colour-type 6 file because it describes content, not encoding. Read the IHDR
-byte, as `internal/lint` does.
+bit depth 8**. Symptoms do not look like an image problem: the selected entry
+appears *blanked out* rather than highlighted (only `selected_item_color` took
+effect), and a themed terminal box becomes an opaque black slab while the
+kernel loads.
+
+Two traps, from opposite directions:
+
+- ImageMagick optimises a flat-coloured rectangle down to a 1-bit palette PNG.
+  `PNG32:` alone is not enough; it needs `-define png:color-type=6 -define
+  png:bit-depth=8`.
+- **Go's `image/png` encoder writes colour-type 2 whenever every pixel is
+  opaque.** That is a sensible size optimisation everywhere except here. This
+  is why `internal/paint` has its own encoder rather than calling
+  `png.Encode`, and why `paint.Save` re-reads the IHDR it just wrote.
+
+Everything that writes a PNG must go through `paint.Save`. Do **not** verify
+encoding with `magick identify -format '%[type]'`: it reports `PaletteAlpha`
+for a perfectly valid colour-type 6 file, because it describes content rather
+than encoding. Read the IHDR byte, as `paint` and `lint` do.
 
 **Font names.** GRUB matches fonts by a name baked inside the `.pf2` by
 `grub-mkfont`, never by filename. `theme.txt` must reference that exact string
-(`"JetBrainsMono NF Regular 20"`). Rename or resize a font and the text silently
-disappears.
+(`"JetBrainsMono NF Regular 20"`). Rename or resize a font and the text
+silently disappears. `grub-themes build` prints the baked names; `internal/pf2`
+reads them out of the NAME section, so `lint` compares against the real thing.
 
 **Pixmap slice sets.** `select_*.png` means GRUB looks for `_c`, `_w`, `_e`
-(and corner variants for boxes). A missing slice is not reported.
+(and corner variants for boxes). A missing slice is not reported. The slice
+sets `internal/assets` generates deliberately mirror the JARVIS theme, which is
+the layout known to render correctly on real hardware.
 
 **`GRUB_TERMINAL_OUTPUT=console`** in `/etc/default/grub` disables graphics
 entirely, so no theme renders at all. This is the single most common reason a
-GRUB theme "does nothing". The installer comments it out.
+GRUB theme "does nothing". `apply` comments it out; `status` reports it.
 
-**The terminal box appears on Enter, not on timeout.** GRUB draws it whenever an
-entry prints output. Pressing Enter does; letting the countdown expire does not.
-Any visible fill therefore reads as a black slab for as long as the kernel takes
-to load. The JARVIS theme ships fully transparent slices for this reason, but
-keeps the `terminal-box` property — removing it makes GRUB fall back to its own
-solid console.
+**The terminal box appears on Enter, not on timeout.** GRUB draws it whenever
+an entry prints output. Pressing Enter does; letting the countdown expire does
+not. Any visible fill therefore reads as a black slab for as long as the kernel
+takes to load. Themes ship fully transparent slices for this reason, but keep
+the `terminal-box` property — removing it makes GRUB fall back to its own solid
+console.
 
-## Testing without GRUB — the three tiers
+## Testing without GRUB — the tiers
 
 Contributors will not all have GRUB, and nobody should install a bootloader or
 reboot to submit a theme. Hence:
 
-1. **`grub-themes lint`** — validates manifest, file references, PNG encoding
-   and font names. Instant, pure Go, no external tools. Catches every failure
-   above. **This runs in CI on every PR.**
-2. **`grub-themes preview`** — renders `theme.txt` to a PNG approximating what
-   GRUB would draw: background, then the selection pill tiled from its slices
-   at the geometry declared in `theme.txt`, then item text in the declared
-   fonts and colours. Not pixel-exact — it is a layout check, not an emulator.
-   **CI should attach this to the PR** so reviewers see the theme without
-   booting anything.
-3. **`grub-themes qemu`** — builds a throwaway image with `grub-mkrescue`, boots
-   it in QEMU and screenshots the menu. Real GRUB, real renderer, no reboot and
-   no risk to the host. Opt-in, since it needs `qemu` and `grub-mkrescue`.
+1. **`grub-themes build`** — generates every asset from the manifest, so the
+   encoding trap cannot be reached by hand in the first place.
+2. **`grub-themes lint`** — validates manifest, file references, PNG encoding,
+   font names, and the contrast of the selection text against its highlight.
+   Instant, pure Go. **This runs in CI on every PR.**
+3. **`grub-themes preview`** — renders `theme.txt` to a PNG: background, then
+   the selection pill tiled from its slices at the declared geometry, then item
+   text drawn from the theme's own `.pf2` files. That is why preview text is
+   aliased — GRUB's fonts are 1 bit per pixel, and this is what the boot menu
+   really looks like. It is a layout check, not an emulator. **CI attaches it
+   to the PR.**
+4. **`grub-themes qemu`** — not built yet. Would build a throwaway image with
+   `grub-mkrescue`, boot it in QEMU and screenshot the menu.
 
-Tier 2 is the one that makes this project pleasant to contribute to. Build it
-early.
+## How themes stay independent of each other
 
-## Planned: making themes independent of each other
+**Adding a theme must never require reading or touching another theme.** It
+used to: `CONTRIBUTING.md` said "copy `themes/jarvis`", which dragged along
+jarvis's `tools/` scripts — written for jarvis's SVG and its particular pill —
+so every new theme inherited decisions it did not make.
 
-**Goal: adding a theme must never require reading or touching another theme.**
+Three moves fixed that, and all three are in place:
 
-Today it does. `CONTRIBUTING.md` says "copy `themes/jarvis`", which drags along
-jarvis's `tools/` — scripts written for jarvis's SVG background and its
-particular pill. Every new theme inherits decisions it did not make, and when
-jarvis changes, the copies quietly drift.
+1. **Asset generation lives in the binary.** `theme.toml` declares what it
+   wants (`[assets.selection]`, `[assets.terminal_box]`, `[assets.progress]`,
+   `[assets.fonts]`, `[assets.background]`) and `grub-themes build` emits
+   correctly-encoded pixmaps, renders the SVG and bakes the fonts. The
+   per-theme shell scripts are gone.
+2. **`grub-themes new <id>`** scaffolds a complete, lint-passing theme from a
+   template compiled into the binary — not a copy of an existing theme.
+3. **Themes are data-only.** A theme directory holds a manifest, a `theme.txt`,
+   generated assets and optionally one SVG. `tools/` is for bespoke art
+   sources; it is never installed.
 
-Three moves fix that, in order of value. None of them is built yet.
-
-### 1. Hoist asset generation into the binary
-
-The colour-type 6 rule is the thing a contributor must never get wrong, and
-right now it is enforced by a shell script *inside one theme*. That is exactly
-backwards. Move it into `grub-themes build <id>`: the theme declares what it
-wants, the app emits correctly-encoded pixmaps. A theme author then writes no
-ImageMagick at all, and the encoding trap stops being their problem.
-
-`theme.toml` grows a declarative section, roughly:
-
-```toml
-[assets.selection]
-style  = "pill"        # pill | bar | underline | none
-fill   = "#00d9ff"
-text   = "#05202a"     # must contrast with fill; lint can check this
-radius = 10
-height = 44            # keep >= boot_menu item_height
-
-[assets.terminal_box]
-fill = "transparent"   # transparent avoids the black slab on Enter
-
-[assets.progress]
-track = "#12202a"
-fill  = "#00d9ff"
-```
-
-The background image stays something the author supplies — that is the actual
+The background stays something the author supplies — that is the actual
 creative work, and it should not be templated.
 
-### 2. `grub-themes new <id>`
-
-Scaffolds a complete, valid, **lint-passing** theme from a template compiled
-into the binary. Not a copy of an existing theme. The author gets
-`theme.toml`, `theme.txt` and placeholder art, and can build and preview
-immediately. This is what removes "go read how jarvis did it" from the
-contributor path.
-
-### 3. Themes become data-only
-
-Once 1 and 2 exist, a theme directory needs no shell scripts. `tools/` stays
-**optional**, for genuinely bespoke art — jarvis's SVG background is a fair
-example and should keep its generator. The standard path requires none.
-
-Target flow, end state:
-
-```bash
-grub-themes new nord          # scaffold, no other theme involved
-$EDITOR themes/nord/theme.toml
-grub-themes build nord        # generate pixmaps, correctly encoded
-grub-themes lint nord
-grub-themes preview nord
-```
-
-Sequence note: **1 before 2.** Scaffolding a theme is only useful once the app
-can build its assets, otherwise `new` just produces another thing to hand-edit.
+Fonts are baked with a restricted glyph range (`internal/assets/fonts.go`):
+Latin, Greek, Cyrillic, punctuation, arrows and box drawing. The full Nerd Font
+is about twenty times larger, and a repository that ships fonts per theme
+cannot afford that.
 
 ## The installer's safety contract
 
-Non-negotiable. `install.sh` (to be ported to `internal/install`) does this and
-any replacement must too:
+Non-negotiable. `internal/install` does this, and any replacement must too:
 
 - Probe for the layout rather than assuming: `grub` vs `grub2` directories,
   `grub-mkconfig` vs `grub2-mkconfig`.
-- Back up `grub.cfg` and `/etc/default/grub` before touching anything.
+- Back up `grub.cfg` and `/etc/default/grub` — to
+  `/var/lib/grub-themes/backups/<timestamp>-<tag>/` — before touching anything.
 - Before regenerating, **record** whether the existing config used UKI entries
   (`uki` / `15_uki`), whether it sourced `custom.cfg`, and how many
   `menuentry` lines there were.
-- After regenerating, verify all three survived. If any did not, **restore the
-  backup and exit non-zero**.
+- After regenerating, verify all three survived, plus that the theme is
+  actually referenced. If any check fails, **restore the backup and return an
+  error**.
+- Refuse to install a theme that does not pass `lint`.
 
 Someone else's recovery entries must not vanish because they tried a theme.
-This matters more than any feature.
+This matters more than any feature. `internal/install/install_test.go` covers
+the config edits and the verification probes; extend it rather than replacing
+it.
+
+## Where themes are looked for
+
+In order, first definition of an id winning:
+
+1. `$GRUB_THEMES_DIR`
+2. `themes/` in the repository you are standing in
+3. `$XDG_DATA_HOME/grub-themes/themes` — where `new` scaffolds, so a theme you
+   are writing appears in the browser immediately
+4. each of `$XDG_DATA_DIRS` (`/usr/local/share`, `/usr/share`)
+
+This is what lets `make install PREFIX=/usr/local` and a distribution package
+under `/usr` both work without configuration.
 
 ## Conventions
 
@@ -200,7 +198,10 @@ This matters more than any feature.
 - **Signed commits are required**; `main` enforces `required_signatures`. Note
   that `git rebase` and `git filter-branch` silently drop signatures — re-sign
   with `git rebase --root --exec 'git commit --amend --no-edit -S'`.
-- Assets have generators under `themes/<id>/tools/`. Never hand-edit a
-  generated file; edit the source and rebuild so the change is reproducible.
+- Never hand-edit a generated file. Edit `theme.toml` or the SVG and run
+  `grub-themes build <id>`; commit the result.
 - `internal/` is genuinely internal — no stability promise. Design the CLI as
   the public interface.
+- Artwork in this repository is original. Themes may be inspired by something,
+  but do not add traced logos or trademarked marks: that would make the
+  repository unsafe for other people to redistribute.
