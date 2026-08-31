@@ -3,3 +3,6 @@
 .DS_Store
 /grub-themes
 /dist/
+
+# Local notes, not published
+/PROJECT-NOTES.md
