@@ -1,12 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <!--
-    ARACHNE - background art for the grub-themes "arachne" theme.
-
-    Comic-print look: Ben-Day halftone dots, speed lines out of the emblem, an
-    orb web slung across the corner, and a colour plate printed out of register
-    (the cyan ghost behind the red spider). All original vector work.
-
-    Re-render with `grub-themes build arachne`.
+    ARACHNE - background art. Re-render with `grub-themes build arachne`.
+    Ben-Day dots, speed lines, an orb web, and a colour plate out of register.
+    All original vector work.
   -->
   <defs>
     <radialGradient id="sky" cx="28%" cy="40%" r="88%">
@@ -15,7 +11,7 @@
       <stop offset="100%" stop-color="#08040f"/>
     </radialGradient>
 
-    <!-- Ben-Day dots: two plates at different pitches, as a comic press would -->
+    <!-- Ben-Day dots, two plates at different pitches -->
     <pattern id="dotsMag" patternUnits="userSpaceOnUse" width="20" height="20">
       <circle cx="10" cy="10" r="3.6" fill="#ff2e63"/>
     </pattern>
@@ -222,7 +218,7 @@
       <path d="M 902 817 Q 740 970 948 1052"/>
   </g>
 
-  <!-- the emblem: cyan plate printed a few millimetres off register -->
+  <!-- the emblem, cyan plate off register -->
   <g transform="translate(585,618) scale(1.18)">
     <g color="#2bd9ff" opacity="0.85" transform="translate(13,-10)">
       <use href="#spider"/>
@@ -241,7 +237,7 @@
   <rect x="34" y="34" width="1852" height="1012" fill="none"
         stroke="#f6f2ff" stroke-opacity="0.16" stroke-width="5"/>
 
-  <!-- title, printed with the plates out of register -->
+  <!-- title, plates out of register -->
   <g font-family="JetBrainsMono NF, JetBrains Mono, monospace" font-weight="700">
     <text x="104" y="152" font-size="80" letter-spacing="12" fill="#2bd9ff" opacity="0.9"
           transform="translate(-7,6)">ARACHNE</text>
@@ -250,7 +246,7 @@
     <text x="104" y="152" font-size="80" letter-spacing="12" fill="#f6f2ff">ARACHNE</text>
   </g>
 
-  <!-- caption box, the way a comic narrates -->
+  <!-- caption box -->
   <g transform="rotate(-1.1 108 196)">
     <rect x="112" y="180" width="500" height="50" fill="#0b0518" opacity="0.9"/>
     <rect x="106" y="174" width="500" height="50" fill="#f6f2ff"/>

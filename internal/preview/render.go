@@ -14,8 +14,8 @@ import (
 	"github.com/sarbojitrana/grub-themes/internal/theme"
 )
 
-// DefaultEntries is a realistic boot menu: a normal entry, another OS, two
-// long entries that show where text overflows, and a firmware entry.
+// DefaultEntries is a realistic menu, including two entries long enough to
+// show where text overflows.
 var DefaultEntries = []string{
 	"Arch Linux",
 	"Windows Boot Manager",
@@ -91,7 +91,7 @@ func Render(t theme.Theme, opt Options) (*paint.Canvas, error) {
 		fonts: map[string]*pf2.Font{},
 	}
 
-	// GRUB matches fonts by the name baked into the .pf2, never by filename.
+	// Keyed by the baked name, which is what theme.txt references.
 	paths, _ := filepath.Glob(filepath.Join(t.Dir, "*.pf2"))
 	for _, p := range paths {
 		if f, err := pf2.Parse(p); err == nil {
@@ -138,8 +138,7 @@ func (r *renderer) font(name string) *pf2.Font {
 	if f, ok := r.fonts[name]; ok {
 		return f
 	}
-	// Fall back to the largest font shipped, so a theme with a typo in a font
-	// name still previews -- lint is what reports the typo.
+	// Fall back to the largest font, so a typo still previews; lint reports it.
 	var best *pf2.Font
 	for _, f := range r.fonts {
 		if best == nil || f.MaxHeight > best.MaxHeight {
@@ -159,7 +158,7 @@ func (r *renderer) drawBackground() {
 	if err != nil {
 		return
 	}
-	// GRUB stretches the desktop image to the screen by default.
+	// GRUB stretches the desktop image to the screen.
 	r.c.DrawImage(paint.Scale(bg, r.opt.Width, r.opt.Height), 0, 0)
 }
 
@@ -196,10 +195,8 @@ func (r *renderer) drawBootMenu(c component) {
 
 	slices := r.loadSlices(c.get("selected_item_pixmap_style"))
 
-	// GRUB draws the highlight box *around* the item content, so the west
-	// slice sits to the left of where the text starts -- and unselected items
-	// line up with the selected one because both are positioned from the
-	// content edge, not the box edge.
+	// GRUB draws the highlight around the item content, so the west slice sits
+	// left of where the text starts, and unselected items line up with it.
 	border := 0
 	if slices != nil && slices.w != nil {
 		border = slices.w.Bounds().Dx()
@@ -250,9 +247,7 @@ func (r *renderer) loadSlices(pattern string) *sliceSet {
 	return s
 }
 
-// drawSlices reproduces GRUB's horizontal 3-slice box: the caps keep their
-// width, the centre repeats across the gap, everything scaled to the item
-// height.
+// drawSlices tiles the centre between fixed caps, scaled to the item height.
 func (r *renderer) drawSlices(s *sliceSet, x, y, w, h int) {
 	if s == nil || w <= 0 || h <= 0 {
 		return
@@ -318,7 +313,7 @@ func (r *renderer) drawLabel(c component) {
 	if text == "" {
 		return
 	}
-	// GRUB substitutes the seconds remaining into a timeout label.
+	// GRUB substitutes the seconds remaining.
 	if strings.Contains(text, "%d") {
 		text = strings.ReplaceAll(text, "%d", strconv.Itoa(r.opt.Timeout))
 	}

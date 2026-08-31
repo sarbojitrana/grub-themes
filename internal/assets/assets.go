@@ -1,17 +1,13 @@
 // Package assets generates a theme's pixmaps from the declarative [assets]
 // section of theme.toml.
 //
-// This exists so that adding a theme needs no ImageMagick and no shell. The
-// one rule a theme author must never get wrong -- every PNG has to be
-// colour-type 6 at bit depth 8 or GRUB silently renders nothing -- is enforced
-// here, in one place, by paint.Save.
+// Adding a theme therefore needs no ImageMagick and no shell, and the one rule
+// nobody may get wrong -- colour-type 6 at depth 8, or GRUB renders nothing --
+// is enforced in one place, by paint.Save.
 //
-// The slice sets below deliberately mirror the JARVIS theme, which is the
-// layout known to render correctly on real hardware:
-//
-//	select_{w,c,e}.png            horizontal 3-slice highlight
-//	terminal_box_{c,n,s,w,e,nw,ne,sw,se}.png   full 9-slice box
-//	progress_bar_c.png, progress_highlight_c.png
+// The slice sets mirror the JARVIS theme, the layout known to render correctly
+// on real hardware: select_{w,c,e}, terminal_box_{c,n,s,w,e,nw,ne,sw,se},
+// progress_bar_c and progress_highlight_c.
 package assets
 
 import (
@@ -24,8 +20,7 @@ import (
 	"github.com/sarbojitrana/grub-themes/internal/theme"
 )
 
-// Defaults, chosen to match themes/jarvis so that regenerating it produces the
-// same pixmaps the hand-written ImageMagick script used to.
+// Defaults match themes/jarvis, so rebuilding it reproduces its pixmaps.
 const (
 	defSelHeight    = 44
 	defSelWidth     = 240
@@ -97,8 +92,8 @@ func intOr(p *int, def int) int {
 	return *p
 }
 
-// buildSelection draws the highlight as one long pill and cuts it into the
-// three slices GRUB tiles: a left cap, a repeatable centre, a right cap.
+// buildSelection draws one long pill and cuts it into the three slices GRUB
+// tiles: left cap, repeatable centre, right cap.
 func buildSelection(t theme.Theme, a *theme.Assets) ([]string, error) {
 	s := a.Selection
 	style := s.Style
@@ -135,9 +130,7 @@ func buildSelection(t theme.Theme, a *theme.Assets) ([]string, error) {
 		dx, dy = 0, 0
 	}
 
-	// The shadow has to fit inside the slice, so the body is inset by the
-	// offset rather than the canvas being grown -- item_height in theme.txt
-	// stays honest.
+	// The shadow is inset rather than grown, so item_height stays honest.
 	bodyW, bodyH := float64(w-abs(dx)), float64(h-abs(dy))
 	ox, oy := 0.0, 0.0
 	if dx < 0 {
@@ -193,12 +186,9 @@ func buildSelection(t theme.Theme, a *theme.Assets) ([]string, error) {
 	return written, nil
 }
 
-// buildTerminalBox writes the 9 slices GRUB wants for terminal-box.
-//
-// Transparent by default, and that is not laziness: GRUB draws this box
-// whenever a menu entry prints output, which happens the moment you press
-// Enter. Any visible fill therefore sits on top of the theme for as long as
-// the kernel takes to load.
+// buildTerminalBox writes the 9 slices for terminal-box, transparent by
+// default: GRUB draws this box the moment an entry prints output, so a visible
+// fill sits over the theme until the kernel has loaded.
 func buildTerminalBox(t theme.Theme, a *theme.Assets) ([]string, error) {
 	fill, err := paint.Hex(a.TerminalBox.Fill)
 	if err != nil {

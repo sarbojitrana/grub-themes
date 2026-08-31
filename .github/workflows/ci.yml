@@ -29,14 +29,11 @@ jobs:
       - run: go test ./...
       - run: make build
 
-      # Every theme in the repository must lint clean. This is the check that
-      # catches GRUB's silent failures -- a palette PNG, a font name that
-      # matches no .pf2 -- before anyone reboots into a broken menu.
+      # Catches GRUB's silent failures before anyone reboots into a broken menu.
       - name: Lint every theme
         run: ./grub-themes lint
 
-      # Re-render the previews and attach them, so a theme can be reviewed
-      # without installing GRUB or booting anything.
+      # Attached so a theme can be reviewed without booting anything.
       - name: Render previews
         run: |
           ./grub-themes preview
@@ -51,9 +48,7 @@ jobs:
           name: theme-previews
           path: previews/
 
-      # A committed preview should match what the theme actually renders to,
-      # otherwise the browser shows something that is not the theme. Reported
-      # rather than enforced: PNG bytes can shift between toolchain versions.
+      # Reported, not enforced: PNG bytes can shift between toolchain versions.
       - name: Previews are up to date
         continue-on-error: true
         run: git diff --stat --exit-code -- themes/

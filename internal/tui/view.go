@@ -70,7 +70,7 @@ func (m Model) header() string {
 
 func (m Model) list(height int) string {
 	var b strings.Builder
-	// Scroll the list so the cursor stays visible on short terminals.
+	// Keep the cursor visible on short terminals.
 	start := 0
 	if height > 0 && m.cursor >= height {
 		start = m.cursor - height + 1
@@ -98,7 +98,7 @@ func (m Model) list(height int) string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-// detail is the right-hand pane: the preview image, then the manifest.
+// detail is the preview image, then the manifest.
 func (m Model) detail(cols, rows int) string {
 	t, ok := m.selected()
 	if !ok {
@@ -130,7 +130,7 @@ func (m Model) preview(t theme.Theme, cols, rows int) string {
 		return dimSty.Render("(preview could not be read: " + err.Error() + ")")
 	}
 	s := renderImage(img, cols, rows)
-	m.previews[key] = s // safe: the map is shared, the model is copied by value
+	m.previews[key] = s // the map is shared; the model is copied by value
 	return s
 }
 
@@ -221,8 +221,7 @@ func (m Model) helpView() string {
 	b.WriteString("  A theme you build locally is yours to keep — nothing has to be published.\n")
 	b.WriteString("  If you would like it in the collection, copy the directory into\n")
 	b.WriteString("  " + selSty.Render("themes/") + " in a fork of the repository and open a pull request:\n\n")
-	// Trailing newlines stay outside Render: lipgloss pads a styled block to
-	// its own width, which would indent whatever follows.
+	// Newlines stay outside Render: lipgloss pads a styled block to its width.
 	b.WriteString(dimSty.Render("      https://github.com/sarbojitrana/grub-themes") + "\n")
 	b.WriteString(dimSty.Render("      see CONTRIBUTING.md and docs/build-your-own-theme.md") + "\n")
 	b.WriteString("\n" + footerSty.Render(" any key to go back"))

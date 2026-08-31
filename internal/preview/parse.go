@@ -1,10 +1,8 @@
 // Package preview renders a theme.txt to a PNG, so a theme can be reviewed
 // without installing GRUB or rebooting anything.
 //
-// It is a layout check, not an emulator: the geometry, colours, pixmaps and
-// fonts are the real ones from the theme, but GRUB's own renderer is not
-// reimplemented here. Text is drawn from the theme's .pf2 files, which is why
-// it looks aliased -- that is genuinely what the boot menu shows.
+// A layout check, not an emulator: the geometry, colours, pixmaps and fonts
+// are the theme's real ones, but GRUB's renderer is not reimplemented.
 package preview
 
 import (
@@ -18,8 +16,7 @@ type component struct {
 	Props map[string]string
 }
 
-// document is a parsed theme.txt: the top-level `key: "value"` settings and
-// the component blocks, in order.
+// document is a parsed theme.txt.
 type document struct {
 	Globals    map[string]string
 	Components []component
@@ -48,8 +45,7 @@ func (c component) num(key string, def int) int {
 	return n
 }
 
-// parse reads theme.txt. GRUB's format is line-oriented enough that a real
-// grammar is not worth it: `key: value` at the top level, `+ name { key = value }`
+// parse reads theme.txt: `key: value` at the top level, `+ name { key = value }`
 // blocks below, `#` comments.
 func parse(src string) document {
 	doc := document{Globals: map[string]string{}}
@@ -93,9 +89,7 @@ func parse(src string) document {
 }
 
 func stripComment(s string) string {
-	// No '#' appears inside a quoted value in practice except colours, so only
-	// treat it as a comment when it starts the line or follows whitespace and
-	// is not inside quotes.
+	// A '#' inside quotes is a colour, not a comment.
 	inQuote := false
 	for i := 0; i < len(s); i++ {
 		switch s[i] {

@@ -1,8 +1,7 @@
 # {{.Name}} — a GRUB2 theme.
 #
-# This manifest is the whole configuration: `grub-themes build {{.ID}}` reads it
-# and generates every PNG and .pf2 in the theme, correctly encoded. You should
-# never have to run ImageMagick, and never have to think about PNG colour types.
+# `grub-themes build {{.ID}}` reads this and generates every PNG and .pf2,
+# correctly encoded. See docs/build-your-own-theme.md.
 
 [theme]
 id          = "{{.ID}}"
@@ -21,25 +20,21 @@ entry   = "theme.txt"
 preview = "preview.png"
 
 [display]
-# The resolution the art was drawn for. GRUB scales the background, and the
-# layout in theme.txt is in percentages, so other 16:9 modes work unchanged.
+# What the art was drawn for; GRUB scales it, and theme.txt is in percentages.
 designed_for = "1920x1080"
 aspect       = "16:9"
 
-# ------------------------------------------------------------------ assets
-# Everything below this line is generated. Edit the values, not the files.
+# --- assets: generated. Edit the values here, not the files. --------------
 
 [assets.background]
-# The art. This is the part that is actually yours: edit the SVG and rebuild.
+# The art: yours. Edit the SVG and rebuild.
 source = "tools/background.svg"
 width  = 1920
 height = 1080
 
 [assets.selection]
-# The highlight behind the selected menu entry.
-#   style  = pill | bar | underline | none
-#   shadow = an optional offset ghost behind it (a drop shadow, or a
-#            chromatic split at the ends)
+# The highlight behind the selected entry. style = pill | bar | underline |
+# none; add shadow/shadow_dx/shadow_dy for an offset ghost behind it.
 style  = "pill"
 fill   = "{{.Accent}}"
 text   = "#0b0f14"     # must contrast with fill; lint checks it
@@ -47,8 +42,7 @@ radius = 10
 height = 44            # keep equal to item_height in theme.txt
 
 [assets.terminal_box]
-# Transparent on purpose. GRUB paints this box while the kernel loads, so any
-# visible fill reads as a slab sitting on top of your theme.
+# Transparent: GRUB paints this box while the kernel loads.
 fill = "transparent"
 
 [assets.progress]
@@ -56,8 +50,7 @@ track = "#141c24e6"
 fill  = "{{.Accent}}"
 
 [assets.fonts]
-# GRUB matches fonts by the name baked inside the .pf2, never by filename.
-# `grub-themes build` prints the baked names -- theme.txt must use them exactly.
+# build prints the baked names; theme.txt must use those exactly.
 regular    = "JetBrainsMonoNerdFont-Regular.ttf"
 bold       = "JetBrainsMonoNerdFont-Bold.ttf"
 prefix     = "font"

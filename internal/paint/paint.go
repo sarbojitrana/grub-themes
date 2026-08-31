@@ -1,11 +1,7 @@
-// Package paint is a very small raster toolkit: enough to draw the pixmaps a
-// GRUB theme needs, composite a preview, and write PNGs that GRUB can actually
-// decode.
-//
-// The last part is the whole reason this package exists. GRUB reads ONLY
-// colour-type 6 (truecolour+alpha) at bit depth 8 and fails silently on
-// anything else, so Save always encodes from an *image.NRGBA -- which Go's PNG
-// encoder writes as colour-type 6 -- and then reads the IHDR back to prove it.
+// Package paint draws the pixmaps a GRUB theme needs and writes PNGs GRUB can
+// actually decode: colour-type 6 at depth 8, which is all it reads, and it
+// fails silently on anything else. Save proves the encoding by re-reading the
+// IHDR it just wrote.
 package paint
 
 import (
@@ -86,7 +82,6 @@ func (c *Canvas) FillRect(x, y, w, h int, col color.NRGBA) {
 }
 
 // FillRoundRect paints a rounded rectangle, anti-aliased by 4x4 supersampling.
-// r is the corner radius; r <= 0 gives square corners.
 func (c *Canvas) FillRoundRect(x, y, w, h, r float64, col color.NRGBA) {
 	if r < 0 {
 		r = 0
@@ -123,7 +118,6 @@ func insideRoundRect(px, py, x, y, w, h, r float64) bool {
 	if px < x || py < y || px > x+w || py > y+h {
 		return false
 	}
-	// Distance to the nearest corner centre, only inside the corner boxes.
 	cx, cy := px, py
 	switch {
 	case px < x+r:
@@ -154,7 +148,7 @@ func (c *Canvas) DrawImage(src image.Image, x, y int) {
 			if a == 0 {
 				continue
 			}
-			// Un-premultiply back to straight alpha.
+			// Un-premultiply.
 			af := float64(a) / 65535
 			col := color.NRGBA{
 				R: clamp8(float64(r) / 257 / af),

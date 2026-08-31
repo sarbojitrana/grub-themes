@@ -8,10 +8,8 @@ import (
 	"testing"
 )
 
-// The single most important invariant in this repository: GRUB decodes
-// colour-type 6 at bit depth 8 and nothing else, silently. Go's own PNG
-// encoder writes colour-type 2 whenever an image happens to be fully opaque,
-// which is why this package encodes by hand.
+// The invariant the whole package exists for: GRUB reads colour-type 6 at
+// depth 8 and nothing else, and Go's encoder drops alpha when opaque.
 func TestSaveAlwaysWritesColourType6(t *testing.T) {
 	for _, tc := range []struct {
 		name string

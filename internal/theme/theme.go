@@ -10,8 +10,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// Manifest mirrors theme.toml. See themes/jarvis/theme.toml for a worked
-// example and CONTRIBUTING.md for what each field is for.
+// Manifest mirrors theme.toml.
 type Manifest struct {
 	Theme struct {
 		ID          string   `toml:"id"`
@@ -37,36 +36,30 @@ type Manifest struct {
 		Aspect      string `toml:"aspect"`
 	} `toml:"display"`
 
-	// Assets is the declarative pixmap description. When present,
-	// `grub-themes build <id>` generates the selection highlight, terminal box
-	// and progress bar from it, correctly encoded, so a theme author never
-	// writes ImageMagick and never meets the colour-type 6 trap.
+	// Assets is what `grub-themes build` generates.
 	Assets *Assets `toml:"assets"`
 }
 
 // Assets describes the pixmaps grub-themes generates for a theme.
 type Assets struct {
 	Selection struct {
-		// Style is pill | bar | underline | none.
+		// pill | bar | underline | none
 		Style  string `toml:"style"`
 		Fill   string `toml:"fill"`
 		Text   string `toml:"text"`
 		Radius *int   `toml:"radius"`
 		Height *int   `toml:"height"`
 		Width  *int   `toml:"width"`
-		// Shadow is an optional hard offset ghost behind the highlight: a
-		// comic-book drop shadow, or a chromatic split at the end caps.
+		// Shadow is an offset ghost behind the highlight.
 		Shadow   string `toml:"shadow"`
 		ShadowDX *int   `toml:"shadow_dx"`
 		ShadowDY *int   `toml:"shadow_dy"`
-		// Thickness is the underline height, for style = "underline".
+		// Thickness is the rule height for style = "underline".
 		Thickness *int `toml:"thickness"`
 	} `toml:"selection"`
 
 	TerminalBox struct {
-		// Fill defaults to transparent, which is almost always what you want:
-		// GRUB paints this box while the kernel loads, so any visible fill
-		// reads as a slab over the theme. See AGENTS.md.
+		// Transparent unless you want a slab over the theme while the kernel loads.
 		Fill string `toml:"fill"`
 	} `toml:"terminal_box"`
 
@@ -82,10 +75,6 @@ type Assets struct {
 }
 
 // Background points at the vector source for the desktop image.
-//
-// The art itself is the one thing grub-themes does not generate -- that is the
-// creative work -- but it does render and re-encode it, so the author never
-// has to think about PNG colour types.
 type Background struct {
 	Source string `toml:"source"` // e.g. "tools/background.svg"
 	Out    string `toml:"out"`    // defaults to "background.png"
@@ -95,16 +84,12 @@ type Background struct {
 
 // Fonts describes the .pf2 files `grub-themes build` bakes with grub-mkfont.
 //
-// GRUB matches a font by the name stored inside the .pf2 and never by
-// filename, so build prints the names it baked -- those are the strings
-// theme.txt has to use.
+// GRUB matches the name inside the .pf2, not the filename.
 type Fonts struct {
-	// Regular and Bold are TTF/OTF filenames, looked up in the usual system
-	// font directories and in the theme directory itself.
+	// TTF/OTF filenames, found in the theme dir or the system font paths.
 	Regular string `toml:"regular"`
 	Bold    string `toml:"bold"`
-	// Prefix names the output files: <prefix>-<size>.pf2 and
-	// <prefix>-bold-<size>.pf2.
+	// Prefix names the output: <prefix>-<size>.pf2, <prefix>-bold-<size>.pf2.
 	Prefix    string `toml:"prefix"`
 	Sizes     []int  `toml:"sizes"`
 	BoldSizes []int  `toml:"bold_sizes"`
@@ -186,8 +171,7 @@ func UserDir() string {
 	return filepath.Join(home, ".local", "share", "grub-themes", "themes")
 }
 
-// dataDirs is $XDG_DATA_DIRS, which is what makes an install under /usr/local
-// (the Makefile default) work as well as a distribution package under /usr.
+// dataDirs is $XDG_DATA_DIRS, so /usr/local and /usr both work.
 func dataDirs() []string {
 	if env := os.Getenv("XDG_DATA_DIRS"); env != "" {
 		return filepath.SplitList(env)
@@ -195,8 +179,7 @@ func dataDirs() []string {
 	return []string{"/usr/local/share", "/usr/share"}
 }
 
-// repoThemes walks up from the working directory looking for a themes/
-// directory that actually contains themes.
+// repoThemes walks up looking for a themes/ directory with themes in it.
 func repoThemes() string {
 	dir, err := os.Getwd()
 	if err != nil {

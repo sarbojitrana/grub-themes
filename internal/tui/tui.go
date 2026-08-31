@@ -1,10 +1,9 @@
 // Package tui is the theme browser: the thing you get when you run
 // grub-themes with no arguments, or launch it from your application menu.
 //
-// It is a terminal UI rather than a desktop one on purpose. GRUB themes get
-// applied on servers over SSH as often as on laptops, and a GTK dependency
-// would make packaging the single static binary much harder. The previews are
-// drawn as half-block colour cells, so you still see the theme.
+// A terminal UI on purpose: GRUB themes get applied over SSH as often as on a
+// laptop, and a GTK dependency would cost the single static binary. Previews
+// are drawn as half-block colour cells, so you still see the theme.
 package tui
 
 import (
@@ -69,8 +68,7 @@ func New(themes []theme.Theme, themesDir string) Model {
 		themesDir: themesDir,
 	}
 	m.status, m.statusErr = install.Read()
-	// Start on the theme that is currently applied: that is nearly always the
-	// one you want to look at first.
+	// Start on the applied theme: usually the one you want to look at.
 	for i, t := range themes {
 		if t.Manifest.Theme.ID == m.status.Active {
 			m.cursor = i
@@ -216,10 +214,8 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// applyCmd runs the install. Applying edits /etc/default/grub and regenerates
-// grub.cfg, so it needs root: when the browser is not already root it hands
-// off to sudo (or pkexec), which is also what puts the password prompt on a
-// terminal the user can see.
+// applyCmd needs root, so it hands off to sudo or pkexec unless we already
+// have it -- which also puts the password prompt somewhere visible.
 func (m Model) applyCmd(t theme.Theme) tea.Cmd {
 	id := t.Manifest.Theme.ID
 	if os.Geteuid() == 0 {
@@ -229,9 +225,8 @@ func (m Model) applyCmd(t theme.Theme) tea.Cmd {
 			return appliedMsg{id: id, err: err}
 		}
 	}
-	// Pass the directory this theme actually came from: under sudo, root has
-	// its own HOME and would not find a theme scaffolded in the user's data
-	// directory.
+	// Pass the theme's own directory: under sudo, root would not find a theme
+	// scaffolded in the user's data directory.
 	cmd, err := elevate("apply", id, filepath.Dir(t.Dir))
 	if err != nil {
 		return func() tea.Msg { return appliedMsg{id: id, err: err} }
@@ -255,7 +250,7 @@ func (m Model) removeCmd() tea.Cmd {
 	return tea.ExecProcess(cmd, func(err error) tea.Msg { return removedMsg{err: err} })
 }
 
-// elevate builds the command that re-runs this binary as root.
+// elevate re-runs this binary as root.
 func elevate(sub, id, themesDir string) (*exec.Cmd, error) {
 	exe, err := os.Executable()
 	if err != nil {

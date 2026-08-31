@@ -4,9 +4,8 @@
 #   nfpm package -f packaging/nfpm.yaml -p deb -t dist/
 #   nfpm package -f packaging/nfpm.yaml -p rpm -t dist/
 #
-# The binary is static, so the packages carry no library dependencies. GRUB
-# itself is only needed to *apply* a theme, which is why it is a recommendation
-# rather than a dependency: browsing, linting and previewing work anywhere.
+# The binary is static. GRUB is only needed to apply a theme, hence a
+# recommendation rather than a dependency.
 name: grub-themes
 arch: amd64
 platform: linux

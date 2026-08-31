@@ -1,18 +1,9 @@
 // Package install applies and removes GRUB themes.
 //
-// This is the part of the project where a bug is genuinely dangerous: it edits
-// the configuration your machine boots from. The contract, inherited from the
-// shell installer this replaces and documented in AGENTS.md, is:
-//
-//   - probe for the layout rather than assuming it (grub vs grub2,
-//     grub-mkconfig vs grub2-mkconfig);
-//   - back up grub.cfg and /etc/default/grub before touching anything;
-//   - before regenerating, record whether the current config had UKI entries,
-//     whether it sourced custom.cfg, and how many menu entries it had;
-//   - after regenerating, verify all three survived -- and if any did not,
-//     restore the backup and fail.
-//
-// Someone else's recovery entry must not disappear because they tried a theme.
+// A bug here loses someone's boot configuration, so the contract in AGENTS.md
+// is fixed: probe the layout, back up grub.cfg and /etc/default/grub, record
+// what the old config had (UKI entries, custom.cfg, menu entry count),
+// regenerate, verify all of it survived, and restore the backup if not.
 package install
 
 import (
@@ -28,8 +19,7 @@ import (
 	"github.com/sarbojitrana/grub-themes/internal/theme"
 )
 
-// BackupRoot is where grub.cfg and /etc/default/grub are copied before any
-// change. Each run gets its own timestamped directory.
+// BackupRoot holds a timestamped copy of grub.cfg and /etc/default/grub per run.
 const BackupRoot = "/var/lib/grub-themes/backups"
 
 // Options controls one apply or remove.
@@ -59,8 +49,7 @@ type Layout struct {
 	ThemesDir string // where themes are installed
 }
 
-// Detect probes for the layout. Distributions disagree about all of it:
-// Debian and Arch use grub/, Fedora and openSUSE grub2/.
+// Detect probes for the layout: Debian and Arch use grub/, Fedora grub2/.
 func Detect(opt Options) (Layout, error) {
 	var l Layout
 
@@ -99,10 +88,8 @@ func Detect(opt Options) (Layout, error) {
 		return l, fmt.Errorf("%s not found", l.Defaults)
 	}
 
-	// /usr/share/grub/themes is the standard location and lives on the root
-	// filesystem, which GRUB reads directly. /boot/grub/themes is preferred
-	// only when /usr/share/grub does not exist or when asked for: on UEFI
-	// systems /boot is often a small FAT ESP, and themes are megabytes.
+	// /usr/share/grub/themes is standard and on the root filesystem. /boot is
+	// often a small FAT ESP on UEFI, and themes are megabytes.
 	switch {
 	case opt.BootThemes:
 		l.ThemesDir = "/boot/grub/themes"
@@ -148,8 +135,7 @@ func Apply(t theme.Theme, opt Options) error {
 		if err := os.RemoveAll(dest); err != nil {
 			return err
 		}
-		// tools/ is the theme's own art sources; the boot loader has no use
-		// for an SVG.
+		// tools/ is art sources; the boot loader has no use for an SVG.
 		if err := copyDir(t.Dir, dest, map[string]bool{"tools": true}); err != nil {
 			return fmt.Errorf("copying theme: %w", err)
 		}
@@ -300,9 +286,8 @@ func updateDefaults(path, dest string, opt Options) error {
 		src += line + "\n"
 	}
 
-	// A theme needs a graphical terminal. GRUB_TERMINAL_OUTPUT=console turns
-	// gfxterm off entirely, and is the single most common reason a GRUB theme
-	// appears to "do nothing".
+	// console output turns gfxterm off entirely: the most common reason a theme
+	// "does nothing".
 	if reConsoleOut.MatchString(src) {
 		src = reConsoleOut.ReplaceAllStringFunc(src, func(m string) string { return "#" + m })
 		opt.say("  commented out GRUB_TERMINAL_OUTPUT=console (themes need gfxterm)")
@@ -328,8 +313,8 @@ func commentTheme(path string) error {
 	return writeFile(path, []byte(src), 0o644)
 }
 
-// regenerate rebuilds grub.cfg and proves the result still boots what the old
-// one booted. Anything short of that restores the backup.
+// regenerate rebuilds grub.cfg and proves it still boots what the old one did.
+// Anything short of that restores the backup.
 func regenerate(l Layout, backup, dest string, opt Options) error {
 	before, err := os.ReadFile(filepath.Join(backup, "grub.cfg"))
 	if err != nil {
@@ -447,8 +432,7 @@ func copyFile(src, dst string) error {
 	return os.WriteFile(dst, b, 0o644)
 }
 
-// copyDir copies a theme into place, world-readable: GRUB reads these files
-// before any user exists.
+// copyDir installs world-readable: GRUB reads these before any user exists.
 func copyDir(src, dst string, skip map[string]bool) error {
 	return filepath.WalkDir(src, func(path string, d os.DirEntry, err error) error {
 		if err != nil {

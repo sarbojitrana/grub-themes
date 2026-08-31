@@ -1,11 +1,8 @@
 // Command grub-themes browses, validates, builds and applies GRUB themes.
 //
-// Run it with no arguments to get the browser. Everything the browser does is
-// also a subcommand, because half of this is used over SSH and in CI.
-//
-// See AGENTS.md for the architecture and for the constraints any new
-// subcommand has to respect -- particularly `apply`, which edits the
-// configuration your machine boots from.
+// No arguments gives the browser. Everything it does is also a subcommand,
+// because half of this gets used over SSH and in CI. See AGENTS.md before
+// changing `apply`.
 package main
 
 import (
@@ -49,7 +46,7 @@ Themes are looked for in $GRUB_THEMES_DIR, then ./themes in a checkout, then
 ~/.local/share/grub-themes/themes, then /usr/share/grub-themes/themes.
 `
 
-// themesDir is the global override; empty means "use the search paths".
+// themesDir overrides the search paths; empty means use them.
 var themesDir string
 
 func main() {
@@ -90,8 +87,7 @@ func main() {
 	}
 }
 
-// extractThemesDir pulls the global --themes-dir out of the argument list so
-// each subcommand's own flag set does not have to know about it.
+// extractThemesDir handles --themes-dir before the subcommand flag sets run.
 func extractThemesDir(args []string) []string {
 	var out []string
 	for i := 0; i < len(args); i++ {
@@ -324,8 +320,8 @@ func cmdNew(args []string) int {
 	target := *dir
 	if target == "" {
 		target = theme.UserDir()
-		// Inside a checkout, scaffold into the repository instead: that is
-		// where someone writing a theme to contribute wants it.
+		// In a checkout, scaffold into the repository: that is where a theme meant
+		// for a pull request belongs.
 		if paths := theme.SearchPaths(); len(paths) > 0 && strings.HasSuffix(paths[0], "themes") {
 			if _, err := os.Stat(filepath.Join(paths[0], "..", "go.mod")); err == nil {
 				target = paths[0]
@@ -346,8 +342,7 @@ func cmdNew(args []string) int {
 	}
 	fmt.Printf("  created %s\n\n", dest)
 
-	// Build straight away, so what you have is a complete, valid theme rather
-	// than a directory of placeholders.
+	// Build straight away, so this is a working theme and not placeholders.
 	t, err := theme.Load(dest)
 	if err != nil {
 		return fail(err)
@@ -445,10 +440,9 @@ func cmdRemove(args []string) int {
 
 // reorder moves flags in front of positional arguments.
 //
-// Go's flag package stops parsing at the first non-flag word, so
-// `apply gotham --dry-run` would otherwise treat --dry-run as an argument.
-// People type it both ways round, and getting it wrong here would silently
-// skip a dry run -- on a command that edits the boot configuration.
+// reorder moves flags ahead of positional arguments. Go's flag package stops
+// at the first non-flag word, so `apply gotham --dry-run` would otherwise
+// ignore the dry run -- on a command that edits the boot configuration.
 func reorder(fs *flag.FlagSet, args []string) []string {
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {
@@ -489,8 +483,7 @@ func installFlags(fs *flag.FlagSet) *install.Options {
 	return &opt
 }
 
-// waitThen keeps the output on screen when the browser shelled out to us, so
-// you can read what grub-mkconfig said before the UI paints over it.
+// waitThen holds the output on screen until the browser repaints over it.
 func waitThen(pause bool, code int) int {
 	if pause {
 		fmt.Print("\n  press Enter to return to the browser ")

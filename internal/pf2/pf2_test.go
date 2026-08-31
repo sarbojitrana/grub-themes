@@ -5,8 +5,7 @@ import (
 	"testing"
 )
 
-// The JARVIS fonts are the reference: every field checked here is one GRUB
-// matches on, and a mismatch is a silent failure at boot.
+// Every field checked here is one GRUB matches on.
 func TestParseJarvisFonts(t *testing.T) {
 	paths, err := filepath.Glob("../../themes/jarvis/*.pf2")
 	if err != nil || len(paths) == 0 {

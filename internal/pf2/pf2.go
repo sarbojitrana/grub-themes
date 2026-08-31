@@ -1,15 +1,13 @@
 // Package pf2 reads GRUB's bitmap font format.
 //
-// Two things need this. lint has to know the name baked into a .pf2, because
-// GRUB matches fonts by that internal name and never by filename -- rename a
-// file or change its size and the text silently disappears. preview has to
-// know the glyphs, so that the rendered PNG shows the same aliased bitmap text
-// the boot menu will actually draw.
+// lint needs the name baked into a .pf2 -- GRUB matches on that, never on the
+// filename -- and preview needs the glyphs, so its PNG shows the same aliased
+// bitmap text the boot menu draws.
 //
-// Format (see GRUB's docs/font_format.txt): a "FILE" header followed by
-// four-character sections, each with a 32-bit big-endian length. CHIX is an
-// index of code point -> offset into DATA; each glyph there is a small header
-// plus a 1-bit-per-pixel bitmap packed MSB first, with no row padding.
+// Format (GRUB's docs/font_format.txt): a FILE header, then four-character
+// sections with 32-bit big-endian lengths. CHIX indexes code point -> offset
+// into DATA, where each glyph is a small header plus a 1-bit-per-pixel bitmap
+// packed MSB first with no row padding.
 package pf2
 
 import (
@@ -77,9 +75,8 @@ func (f *Font) Measure(s string) int {
 	return w
 }
 
-// Draw renders s onto c with the pen starting at x and the baseline at y.
-// GRUB's fonts are 1 bit per pixel, so this is deliberately not anti-aliased:
-// it is what the boot menu looks like.
+// Draw renders s with the pen at x and the baseline at y. Not anti-aliased:
+// GRUB's fonts are 1 bit per pixel, and this is what the boot menu looks like.
 func (f *Font) Draw(c *paint.Canvas, s string, x, y int, col color.NRGBA) int {
 	pen := x
 	for _, r := range s {
@@ -152,7 +149,7 @@ func Parse(path string) (*Font, error) {
 		return nil, fmt.Errorf("%s: missing CHIX or DATA section", path)
 	}
 
-	// CHIX entries are 9 bytes: code point, storage flags, offset into the file.
+	// 9 bytes each: code point, storage flags, offset.
 	for i := 0; i+9 <= len(chix); i += 9 {
 		code := rune(binary.BigEndian.Uint32(chix[i : i+4]))
 		off := int(binary.BigEndian.Uint32(chix[i+5 : i+9]))
@@ -190,8 +187,7 @@ func readGlyph(b []byte, off int) (*Glyph, error) {
 	return g, nil
 }
 
-// Name returns just the name baked into a .pf2, which is what theme.txt has to
-// reference.
+// Name is the string theme.txt has to reference.
 func Name(path string) (string, error) {
 	f, err := Parse(path)
 	if err != nil {

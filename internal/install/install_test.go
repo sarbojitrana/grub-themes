@@ -60,8 +60,8 @@ func TestUpdateDefaultsReplacesExistingAndCommented(t *testing.T) {
 	}
 }
 
-// GRUB_TERMINAL_OUTPUT=console disables graphics entirely: it is the single
-// most common reason a theme appears to do nothing.
+// console output disables graphics entirely: the most common reason a theme
+// appears to do nothing.
 func TestUpdateDefaultsDisablesConsoleOutput(t *testing.T) {
 	p := tempDefaults(t, "GRUB_TERMINAL_OUTPUT=console\n")
 	var log bytes.Buffer
@@ -101,7 +101,7 @@ func TestCommentThemeLeavesNothingActive(t *testing.T) {
 	}
 }
 
-// The art sources are for contributors, not for the boot loader.
+// Art sources are for contributors, not the boot loader.
 func TestCopyDirSkipsTools(t *testing.T) {
 	src := t.TempDir()
 	os.MkdirAll(filepath.Join(src, "tools"), 0o755)
@@ -120,8 +120,7 @@ func TestCopyDirSkipsTools(t *testing.T) {
 	}
 }
 
-// The verification regexes are what stand between a theme and someone's lost
-// recovery entry, so they are pinned here.
+// These regexes stand between a theme and someone's lost recovery entry.
 func TestConfigProbes(t *testing.T) {
 	cfg := []byte(`menuentry 'Arch Linux' {
 }

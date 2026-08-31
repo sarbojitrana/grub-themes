@@ -1,8 +1,6 @@
 # ─────────────────────────────────────────────────────────────
 #  {{.Name}} — GRUB2 gfxmenu theme
-#
-#  The font names below must match the names baked into the .pf2
-#  files. `grub-themes build {{.ID}}` prints them.
+#  Font names must match the ones `grub-themes build {{.ID}}` prints.
 # ─────────────────────────────────────────────────────────────
 
 title-text: ""
@@ -10,11 +8,8 @@ desktop-image: "background.png"
 desktop-color: "#0b0f14"
 
 terminal-font: "JetBrainsMono NF Regular 14"
-# The terminal_box_*.png slices are fully transparent, on purpose: GRUB draws
-# this box whenever an entry prints output, which happens the moment you press
-# Enter. A visible fill would sit over your theme until the kernel has loaded.
-# Keep the property though -- removing it makes GRUB fall back to its own
-# solid console.
+# Transparent slices, on purpose: GRUB draws this box the moment an entry
+# prints output. Keep the property -- without it GRUB uses its own console.
 terminal-box: "terminal_box_*.png"
 terminal-left: "6%"
 terminal-top: "12%"

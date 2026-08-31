@@ -1,8 +1,7 @@
 # ─────────────────────────────────────────────────────────────
 #  ARACHNE — GRUB2 gfxmenu theme
-#  Font names below MUST match the names baked into the .pf2
-#  files by grub-mkfont ("JetBrainsMono NF Regular <size>").
-#  Run `grub-themes build arachne` to regenerate both.
+#  Fonts are matched by the name baked into the .pf2, not the
+#  filename. `grub-themes build` prints them.
 # ─────────────────────────────────────────────────────────────
 
 title-text: ""
@@ -10,11 +9,9 @@ desktop-image: "background.png"
 desktop-color: "#0b0518"
 
 terminal-font: "JetBrainsMono NF Regular 14"
-# The terminal_box_*.png slices are fully transparent. GRUB draws this box when
-# an entry prints anything -- which happens when you press Enter on an entry,
-# but not when the countdown expires. Any visible fill reads as a black slab
-# over the theme for as long as the kernel takes to load. Keep the property:
-# removing it makes GRUB fall back to its own solid console instead.
+# Transparent slices, on purpose: GRUB draws this box the moment an entry
+# prints output, so a visible fill is a black slab until the kernel loads.
+# Keep the property -- without it GRUB falls back to its own solid console.
 terminal-box: "terminal_box_*.png"
 terminal-left: "6%"
 terminal-top: "12%"
@@ -33,9 +30,8 @@ terminal-border: "0"
   item_font           = "JetBrainsMono NF Regular 20"
   item_color          = "#dbd4f4"
   selected_item_font  = "JetBrainsMono NF Bold 18"
-  # White on the red plate. This reads only because the plate actually renders:
-  # the select_*.png slices must stay colour-type 6, which is what
-  # `grub-themes build` and `grub-themes lint` are for.
+  # Only readable because the pixmap renders; that is what build and lint
+  # are for.
   selected_item_color = "#ffffff"
 
   icon_width      = 0

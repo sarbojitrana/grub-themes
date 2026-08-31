@@ -21,9 +21,7 @@ func testThemes() []theme.Theme {
 	return []theme.Theme{t}
 }
 
-// The browser is the part most people will actually use, and it draws images
-// as terminal cells. This checks a frame renders at a few sizes without
-// panicking and still contains the theme.
+// A frame must render at any size without panicking.
 func TestViewRenders(t *testing.T) {
 	lipgloss.SetColorProfile(termenv.TrueColor)
 	for _, size := range [][2]int{{150, 44}, {80, 24}, {40, 12}} {

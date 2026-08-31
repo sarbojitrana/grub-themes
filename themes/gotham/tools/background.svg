@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <!--
-    GOTHAM - background art for the grub-themes "gotham" theme.
-
-    Re-render with tools/build-background.sh after editing. Everything here is
-    original vector work: a bat silhouette, a signal disc and a generic city
-    skyline, not a reproduction of anyone's logo.
+    GOTHAM - background art. Re-render with `grub-themes build gotham`.
+    Original vector work: a bat silhouette, a signal disc, a generic skyline.
   -->
   <defs>
     <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
@@ -44,14 +41,14 @@
 
   <rect width="1920" height="1080" fill="url(#night)"/>
 
-  <!-- low cloud, lit from below by the signal -->
+  <!-- low cloud -->
   <g filter="url(#cloudy)" opacity="0.55">
     <ellipse cx="1330" cy="300" rx="330" ry="105" fill="#16202c"/>
     <ellipse cx="1560" cy="230" rx="260" ry="80"  fill="#111a24"/>
     <ellipse cx="1180" cy="215" rx="210" ry="66"  fill="#0e161f"/>
   </g>
 
-  <!-- the beam, thrown from somewhere down in the city -->
+  <!-- the beam -->
   <g filter="url(#soft)">
     <path d="M 250 1090 L 1150 430 L 1660 430 L 470 1090 Z" fill="url(#beam)"/>
   </g>
@@ -315,7 +312,7 @@
       <line x1="857" y1="169" x2="842" y2="229"/>
   </g>
 
-  <!-- a scrim under the menu column, so item text keeps its contrast -->
+  <!-- scrim under the menu column, for text contrast -->
   <rect width="1080" height="1080" fill="url(#scrim)"/>
   <rect width="1920" height="1080" fill="url(#vig)"/>
 

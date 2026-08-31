@@ -53,7 +53,7 @@ func TestBuildProducesDecodableSlices(t *testing.T) {
 		t.Errorf("wrote %d files, want 14 (3 selection + 9 box + 2 progress)", len(rep.Written))
 	}
 
-	// The whole point of generating these: every one has to be colour-type 6.
+	// The whole point: every one has to be colour-type 6.
 	for _, p := range rep.Written {
 		b, err := os.ReadFile(p)
 		if err != nil {
@@ -64,8 +64,7 @@ func TestBuildProducesDecodableSlices(t *testing.T) {
 		}
 	}
 
-	// The slice heights must match the declared item height, or GRUB scales
-	// the highlight.
+	// Matching heights keep GRUB from scaling the highlight.
 	for _, name := range []string{"select_w.png", "select_c.png", "select_e.png"} {
 		img, err := paint.Load(filepath.Join(dir, name))
 		if err != nil {
@@ -76,8 +75,7 @@ func TestBuildProducesDecodableSlices(t *testing.T) {
 		}
 	}
 
-	// A transparent terminal box is what stops a black slab appearing over the
-	// theme while the kernel loads.
+	// Transparency is what stops a black slab during boot.
 	box, err := paint.Load(filepath.Join(dir, "terminal_box_c.png"))
 	if err != nil {
 		t.Fatal(err)

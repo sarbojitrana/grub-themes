@@ -12,11 +12,8 @@ import (
 // encodePNG writes img as colour-type 6 (truecolour+alpha), bit depth 8,
 // non-interlaced.
 //
-// Go's image/png encoder cannot be used for this. It inspects the image and
-// writes colour-type 2 whenever every pixel is opaque -- a sensible size
-// optimisation everywhere except here, because GRUB decodes colour-type 6 and
-// nothing else, silently. A fully opaque background would come back as a blank
-// screen with no error anywhere, so the encoding is pinned by hand instead.
+// Go's image/png cannot do this: it writes colour-type 2 whenever every pixel
+// is opaque, and GRUB would then render a blank screen with no error.
 func encodePNG(w io.Writer, img *image.NRGBA) error {
 	b := img.Bounds()
 	width, height := b.Dx(), b.Dy()
@@ -74,10 +71,8 @@ func encodePNG(w io.Writer, img *image.NRGBA) error {
 	return chunk(w, "IEND", nil)
 }
 
-// filterRow applies each PNG filter and keeps the one with the smallest sum of
-// absolute differences, the heuristic libpng uses. It matters: these files are
-// committed to the repository, and a 1920x1080 background unfiltered is several
-// times larger.
+// filterRow picks the filter with the smallest sum of absolute differences,
+// the libpng heuristic. These files are committed, so size matters.
 func filterRow(raw, prev []byte, cand [][]byte, bpp int) (byte, []byte) {
 	n := len(raw)
 	copy(cand[0], raw)

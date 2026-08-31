@@ -14,10 +14,9 @@ import (
 
 // renderImage draws an image into a block of terminal cells.
 //
-// Each cell holds two pixels: the upper half is painted as the foreground of
-// "▀" and the lower half as its background. Terminal cells are about twice as
-// tall as they are wide, so this comes out roughly square -- which is what
-// makes a 1920x1080 theme preview readable inside a terminal.
+// Each cell holds two pixels: the top half is the foreground of "▀", the
+// bottom its background. Cells are about twice as tall as they are wide, so
+// this comes out roughly square.
 func renderImage(img image.Image, cols, rows int) string {
 	if cols < 4 || rows < 2 {
 		return ""
@@ -40,8 +39,7 @@ func renderImage(img image.Image, cols, rows int) string {
 	}
 
 	small := paint.Scale(img, w, h*2)
-	// lipgloss owns the profile so that a caller can pin it (tests do), and so
-	// that a 256-colour terminal degrades the same way the rest of the UI does.
+	// lipgloss owns the profile so tests can pin it and 256-colour degrades.
 	profile := lipgloss.ColorProfile()
 
 	var sb strings.Builder

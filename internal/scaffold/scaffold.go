@@ -1,9 +1,9 @@
 // Package scaffold creates a new theme from a template compiled into the
 // binary.
 //
-// The point is that adding a theme never requires reading another theme.
-// Copying themes/jarvis used to be the documented route, and it dragged along
-// decisions -- and build scripts -- that had nothing to do with the new theme.
+// Adding a theme never requires reading another theme. Copying themes/jarvis
+// used to be the documented route, and it dragged along decisions -- and build
+// scripts -- that had nothing to do with the new theme.
 package scaffold
 
 import (
@@ -99,8 +99,7 @@ func renderTree(root, dest string, p Params) error {
 	return nil
 }
 
-// guessAuthor uses the git identity, which is nearly always the right answer
-// and saves an interactive prompt.
+// guessAuthor uses the git identity, to save an interactive prompt.
 func guessAuthor() string {
 	out, err := exec.Command("git", "config", "--get", "user.name").Output()
 	if err != nil {

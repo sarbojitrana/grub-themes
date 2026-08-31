@@ -13,12 +13,10 @@ import (
 
 // buildBackground renders the theme's vector source to background.png.
 //
-// Whatever the renderer produces is decoded and written out again through
-// paint.Save, so the file that lands in the theme is colour-type 6 regardless
-// of what rsvg-convert or ImageMagick felt like emitting.
-//
-// The rendered PNG is committed, so a machine without a converter is not an
-// error: it is reported and skipped.
+// buildBackground renders the vector source and re-encodes it through
+// paint.Save, so the result is colour-type 6 whatever the renderer emitted.
+// The PNG is committed, so a machine without a converter is skipped, not an
+// error.
 func buildBackground(t theme.Theme, b *theme.Background) (string, string, error) {
 	if b == nil || b.Source == "" {
 		return "", "", nil

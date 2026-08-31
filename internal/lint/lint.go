@@ -1,8 +1,7 @@
 // Package lint validates a theme without needing GRUB installed.
 //
-// Every check here exists because the corresponding mistake is invisible at
-// build time and only shows up as a broken boot menu. GRUB has essentially no
-// error reporting: it drops what it cannot read and carries on.
+// Every check here is for a mistake GRUB reports as nothing at all: it
+// drops what it cannot read and carries on booting.
 package lint
 
 import (
@@ -84,8 +83,7 @@ func Check(t theme.Theme) Result {
 
 func checkManifest(r *Result) {
 	m := r.Theme.Manifest
-	// The id is what `apply` installs as and what GRUB_THEME points at, so a
-	// mismatch with the directory name is confusing at best.
+	// The id is what the theme is installed as.
 	if base := filepath.Base(r.Theme.Dir); m.Theme.ID != base {
 		r.add(Warning, "theme.toml",
 			fmt.Sprintf("theme.id is %q but the directory is %q", m.Theme.ID, base),
@@ -134,8 +132,7 @@ func checkReferences(r *Result, src string) {
 		}
 	}
 
-	// "select_*.png" is a slice set: GRUB looks for _c, _w, _e (and the
-	// corner/edge variants for boxes). Missing slices are a silent failure.
+	// A slice set: GRUB wants _c, _w, _e, and reports none of them missing.
 	for _, m := range rePixmap.FindAllStringSubmatch(src, -1) {
 		pattern := m[1]
 		base := strings.TrimSuffix(pattern, "_*.png")
@@ -166,17 +163,10 @@ func pngHeader(path string) (w, h uint32, depth, colourType byte, err error) {
 	return
 }
 
-// checkPNGs is the important one.
-//
-// GRUB decodes ONLY colour-type 6 (truecolour+alpha) at bit depth 8, and it
-// fails silently. ImageMagick will happily optimise a flat-coloured rectangle
-// down to a 1-bit palette PNG, which GRUB drops entirely -- the selected menu
-// entry then looks blanked out rather than highlighted, and a themed terminal
-// box turns into an opaque black slab during boot.
-//
-// Note you cannot check this with `magick identify -format '%[type]'`: it
-// reports "PaletteAlpha" for a perfectly valid colour-type 6 file, because it
-// describes the content rather than the encoding. Read IHDR, as here.
+// checkPNGs is the important one: GRUB decodes only colour-type 6 at depth 8
+// and fails silently, so a palette PNG leaves the selected entry looking
+// blanked out. `magick identify -format '%[type]'` cannot tell you this --
+// it describes content, not encoding -- so read the IHDR.
 func checkPNGs(r *Result) {
 	pngs, _ := filepath.Glob(filepath.Join(r.Theme.Dir, "*.png"))
 	for _, p := range pngs {
@@ -194,9 +184,8 @@ func checkPNGs(r *Result) {
 	}
 }
 
-// checkFonts verifies each font named in theme.txt matches a name baked into
-// one of the .pf2 files. GRUB matches fonts by that internal name, never by
-// filename, so a renamed file or a resized font silently renders nothing.
+// checkFonts matches theme.txt against the names baked into the .pf2 files.
+// GRUB never matches on filename, and a miss renders nothing.
 func checkFonts(r *Result, src string) {
 	pf2s, _ := filepath.Glob(filepath.Join(r.Theme.Dir, "*.pf2"))
 	names := map[string]string{} // font name -> file it came from
@@ -236,11 +225,8 @@ func checkFonts(r *Result, src string) {
 	}
 }
 
-// checkAssets validates the declarative [assets] section against theme.txt.
-//
-// These are consistency checks rather than encoding ones: the generated files
-// are always correct, but the manifest and theme.txt can still disagree about
-// what they describe.
+// checkAssets cross-checks [assets] against theme.txt. The generated files are
+// always correct; the two descriptions of them can still disagree.
 func checkAssets(r *Result, src string) {
 	a := r.Theme.Manifest.Assets
 	if a == nil {
@@ -260,10 +246,8 @@ func checkAssets(r *Result, src string) {
 		r.add(Error, "theme.toml", "assets.selection.text: "+errText.Error(), "")
 	}
 
-	// Contrast between the highlight and the text drawn on it. This is the
-	// check that catches "the selected entry looks blanked out": if the two
-	// are close, a highlight that fails to render leaves unreadable text and
-	// no clue why.
+	// If these are close and the highlight ever fails to render, the selected
+	// entry is unreadable with no clue why.
 	if errFill == nil && errText == nil && fill.A > 0 && sel.Text != "" {
 		switch ratio := paint.Contrast(fill, text); {
 		case ratio < 3:
@@ -277,10 +261,9 @@ func checkAssets(r *Result, src string) {
 		}
 	}
 
-	// theme.txt draws the text; theme.toml only describes it. If they
-	// disagree, the contrast checked above is not the contrast you get.
+	// theme.txt draws the text; theme.toml only describes it.
 	if m := reSelectedColor.FindStringSubmatch(src); m != nil && sel.Text != "" && errText == nil {
-		// Compare the parsed colours, so "#fff" and "#FFFFFF" agree.
+		// Parsed, so "#fff" and "#FFFFFF" agree.
 		if drawn, err := paint.Hex(m[1]); err == nil && drawn != text {
 			r.add(Warning, "theme.txt",
 				fmt.Sprintf("selected_item_color is %s but assets.selection.text is %s", m[1], sel.Text),
@@ -288,8 +271,7 @@ func checkAssets(r *Result, src string) {
 		}
 	}
 
-	// GRUB scales the pixmap to the item height; matching them keeps the
-	// highlight pixel-exact.
+	// Matching heights keeps the highlight from being scaled.
 	if sel.Height != nil {
 		if m := reItemHeight.FindStringSubmatch(src); m != nil {
 			if h, err := strconv.Atoi(m[1]); err == nil && h != *sel.Height {

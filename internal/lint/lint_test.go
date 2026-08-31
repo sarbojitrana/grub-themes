@@ -60,12 +60,11 @@ name = "Tester"
 entry = "theme.txt"
 `
 
-// A palette PNG is the classic silent failure: GRUB drops it and the selected
-// entry looks blanked out rather than highlighted.
+// A palette PNG is the classic silent failure.
 func TestRejectsWrongPNGColourType(t *testing.T) {
 	tm := writeTheme(t, goodManifest, "desktop-image: \"background.png\"\n")
 
-	// Fully opaque, so Go's encoder writes colour-type 2 rather than 6.
+	// Opaque, so Go's encoder writes colour-type 2.
 	img := image.NewNRGBA(image.Rect(0, 0, 4, 4))
 	for i := range img.Pix {
 		img.Pix[i] = 255
@@ -155,7 +154,7 @@ text  = "#05202a"
 	}
 }
 
-// GRUB matches fonts by the name inside the .pf2, never the filename.
+// GRUB matches the name inside the .pf2, never the filename.
 func TestFlagsUnknownFont(t *testing.T) {
 	entry := "+ boot_menu {\n  item_font = \"Nonexistent Font 20\"\n}\n"
 	res := Check(writeTheme(t, goodManifest, entry))
@@ -164,7 +163,7 @@ func TestFlagsUnknownFont(t *testing.T) {
 	}
 }
 
-// Every theme in the repository must stay clean: this is the check CI runs.
+// What CI runs on every pull request.
 func TestShippedThemesPass(t *testing.T) {
 	themes, err := theme.Discover("../../themes")
 	if err != nil || len(themes) == 0 {

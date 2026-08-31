@@ -18,8 +18,7 @@ BINDIR   = $(DESTDIR)$(PREFIX)/bin
 DATADIR  = $(DESTDIR)$(PREFIX)/share
 THEMEDIR = $(DATADIR)/grub-themes/themes
 
-# Theme files, minus each theme's art sources: tools/ is for contributors, not
-# for the boot loader.
+# Minus tools/: art sources are for contributors, not the boot loader.
 THEME_FILES := $(shell find themes -type f -not -path 'themes/*/tools/*' 2>/dev/null)
 
 .PHONY: all build install install-user uninstall test lint previews clean
@@ -44,8 +43,7 @@ install: build
 	@echo
 	@echo "  Installed. Run 'grub-themes', or find \"GRUB Themes\" in your launcher."
 
-# ~/.local is on the default XDG data path, so themes installed there are found
-# without any configuration.
+# ~/.local is on the default XDG data path, so this needs no configuration.
 install-user:
 	$(MAKE) install PREFIX=$(HOME)/.local
 
@@ -61,7 +59,6 @@ uninstall:
 test:
 	$(GO) test ./...
 
-# What CI runs on every pull request.
 lint: build
 	$(GO) vet ./...
 	./$(BIN) lint

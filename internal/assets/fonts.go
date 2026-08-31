@@ -12,12 +12,8 @@ import (
 	"github.com/sarbojitrana/grub-themes/internal/theme"
 )
 
-// glyphRanges is what gets baked into every .pf2.
-//
-// The full font is roughly twenty times larger, and almost all of that is
-// scripts no boot menu uses. This covers Latin (including accents), Greek,
-// Cyrillic, punctuation, currency, arrows, box drawing and block elements --
-// enough for real menu entries and for the arrow hints themes like to draw.
+// glyphRanges is what gets baked into every .pf2. The full font is about
+// twenty times larger and almost all of it is scripts no boot menu uses.
 var glyphRanges = []string{
 	"0x20-0x7e",     // ASCII
 	"0xa0-0x24f",    // Latin-1 supplement, Latin extended A/B
@@ -34,10 +30,8 @@ type FontResult struct {
 	Name string
 }
 
-// buildFonts runs grub-mkfont for each declared size.
-//
-// The .pf2 files are committed, so a missing grub-mkfont is not an error --
-// most contributors never touch the fonts. It is reported and skipped.
+// buildFonts runs grub-mkfont per size. The .pf2 files are committed, so a
+// missing grub-mkfont is reported and skipped, not an error.
 func buildFonts(t theme.Theme, f *theme.Fonts) ([]FontResult, string, error) {
 	if f == nil || (f.Regular == "" && f.Bold == "") {
 		return nil, "", nil
@@ -68,9 +62,7 @@ func buildFonts(t theme.Theme, f *theme.Fonts) ([]FontResult, string, error) {
 			}
 			args = append(args, "-o", dst, src)
 			cmd := exec.Command("grub-mkfont", args...)
-			// grub-mkfont warns about font features it does not implement on
-			// nearly every modern font; that is not a problem for a bitmap
-			// dump, so only failure is reported.
+			// Warnings about unimplemented font features are normal here.
 			if b, err := cmd.CombinedOutput(); err != nil {
 				return fmt.Errorf("grub-mkfont %s: %w\n%s", name, err, b)
 			}
@@ -91,8 +83,7 @@ func buildFonts(t theme.Theme, f *theme.Fonts) ([]FontResult, string, error) {
 	return out, "", nil
 }
 
-// findFont locates a TTF/OTF by filename: in the theme directory first, so a
-// theme can ship its own, then in the usual system font locations.
+// findFont looks in the theme directory first, then the system font paths.
 func findFont(themeDir, name string) (string, error) {
 	if filepath.IsAbs(name) {
 		if _, err := os.Stat(name); err == nil {

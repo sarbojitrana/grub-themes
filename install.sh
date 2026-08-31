@@ -7,8 +7,7 @@
 #     ./install.sh --user       install into ~/.local, no root needed
 #     ./install.sh --uninstall  remove it again
 #
-#   This installs the *browser*. It does not touch your bootloader: applying a
-#   theme is a separate, explicit step you take from the app afterwards.
+#   This installs the browser. It does not touch your bootloader.
 #
 set -euo pipefail
 
